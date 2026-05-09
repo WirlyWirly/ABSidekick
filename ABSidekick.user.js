@@ -14,10 +14,10 @@
 
 // ----------------------------------- Matches --------------------------------------
 
-// If ABSidekick does not run, edit this line with the actual Audiobookshelf URL
-// @match       http://192.168.1.100:80/audiobookshelf/*
+// If ABSidekick does not run automatically on your URL, edit this line with your actual Audiobookshelf URL and port
+// @match       http://192.168.1.105:80/audiobookshelf/*
 
-// @include     /https?://.+/audiobookshelf/.+/
+// @include     /https?://.+/audiobookshelf/.*/
 
 // ----------------------------------- Dependencies --------------------------------------
 
@@ -843,12 +843,24 @@ GM_addStyle(`
         margin: .25rem;
     }
 
-    /* ---------- Animation ---------- */
+    /* ---------- Animations ---------- */
 
     @keyframes blinker {
 
         50% {
             opacity: .2;
+        }
+
+    }
+
+    @keyframes textglow {
+
+        0% {
+            text-shadow: 0px 0px 5px #2078b9;
+        }
+
+        100% {
+            text-shadow: 0px 0px 20px #2078b9;
         }
 
     }
@@ -912,6 +924,7 @@ GM_addStyle(`
         text-shadow: 0 0 20px #2078b9;
         font-size: 2rem;
         font-family: 'Lilita One' !important;
+        animation: textglow .5s linear infinite alternate;
     }
 
     #abSidekick_header > div {
@@ -952,7 +965,7 @@ GM_addStyle(`
         border: 1px solid #ddd;
         color: #191d2a;
         font-size: .9rem;
-        font-weight: 400;
+        font-weight: 500;
         margin: 0px 20px 0 0px;
         position: fixed;
         right: 0px;
