@@ -835,6 +835,11 @@ GM_addStyle(`
 
 @import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Roboto+Condensed:wght@500&display=swap');
 
+    :root {
+        --fonts-lilita: 'Lilita One', 'Roboto Condensed', 'Source Sans Pro';
+        --fonts-roboto: 'Roboto Condensed', 'Source Sans Pro';
+    }
+
     /* ---------- AppBar ---------- */
 
     #gmConfigAppBar {
@@ -883,7 +888,7 @@ GM_addStyle(`
 
     ${SETTINGS.customFont == 'Everywhere' ? `
     *:not(.material-symbols) {
-        font-family: Roboto Condensed;
+        font-family: var(--fonts-roboto);
     }` : '' }
 
 `)
@@ -893,7 +898,7 @@ GM_addStyle(`
 GM_addStyle(`
 
     #abSidekick * {
-        font-family: 'Roboto Condensed', arial, tahoma !important;
+        font-family: var(--fonts-roboto) !important;
     }
 
     #abSidekick {
@@ -923,7 +928,7 @@ GM_addStyle(`
         user-select: none;
         text-shadow: 0 0 20px #2078b9;
         font-size: 2rem;
-        font-family: 'Lilita One' !important;
+        font-family: var(--fonts-lilita) !important;
         animation: textglow .5s linear infinite alternate;
     }
 
@@ -940,7 +945,7 @@ GM_addStyle(`
         border-top: 2px solid #2C3E50;
         cursor: default;
         display: flex;
-        font-family: 'Lilita One' !important;
+        font-family: var(--fonts-lilita) !important;
         font-size: 1.2rem;
         justify-content: center;
         margin: 12px auto 8px auto;
@@ -1034,7 +1039,7 @@ GM_addStyle(`
     #appbar h1,
     #bookTitle {
         color: #efefef;
-        font-family: 'Lilita One';
+        font-family: var(--fonts-lilita);
         font-size: 2rem;
         text-shadow: 0px 0px 15px #000000;
     }
@@ -1048,14 +1053,14 @@ GM_addStyle(`
     }
 
     #editPanel #matchTab {
-        font-family: 'Lilita One', 'Roboto Condensed';
+        font-family: var(--fonts-lilita);
         font-weight: 400,
 
     }
 
     ${SETTINGS.customFont == 'EditPanel' ? `
     #editPanel *:not(.material-symbols) {
-        font-family: 'Roboto Condensed';
+        font-family: var(--fonts-roboto);
     }` : '' }
 
     /* ---------- Search Bar Row ---------- */
