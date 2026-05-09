@@ -18,11 +18,18 @@ A suite of additional features to dramatically speed up your matching and allow 
 * **Hover Covers**: Hover your mouse over cover images to quickly enlarge them for detailed viewing
 * Auto `Title` fill: If the initial *ASIN* search returns *No Results*, the title will be automatically populated into the search field, the same as when clicking the `Title` button.
 
+## Install
+ABSidekick is a **UserScript** that is installed through a **UserScript Manager** addon in your browser. A **UserScript Manager** is just like any other like any browser addon, which means you can easily find and install one from wherever you get your browser addons.
 
-> ℹ️ If **ABSidekick** does not automatically run when you are on Audiobookshelf, you will need to edit the `@match` line near the top of the script with your actual URL. Be aware that future script updates will overwrite this edit back to the default.
+If you are not sure which manager to get, the one I use and recommend above all others is [ViolentMonkey](https://violentmonkey.github.io/), for its loyal development team and open-source nature.
+
+⚠️ UserScripts like **ABSidekick** will run **code** in your browser when you visit certain pages. It is important to be aware of this and therefore only install UserScripts from trusted sources.
+
+Once you have added a **UserScript Manager** to your browser, simply click the **Install** link below and the manager will prompt you to install **ABSidekick**
+
+ℹ️ If **ABSidekick** does not automatically run when you are on Audiobookshelf, you will need to edit the `@match` line near the top of the script so that it points to your actual Audiobookshelf URL. Be aware that **ABSidekick** is configured to recieve auto-updates, so any edits you make will be overwritten by future updates
+
 >
 > **Source: [GitHub](https://github.com/WirlyWirly/ABSidekick)**<br>
 > **Install: [🌱 ABSidekick](https://raw.githubusercontent.com/WirlyWirly/ABSidekick/main/ABSidekick.user.js?raw=true)**<br>
 > Written on [🐺 LibreWolf](https://librewolf.net/) via [🐵 Violentmonkey](https://violentmonkey.github.io/)
->
-<br>
