@@ -1,0 +1,69 @@
+name: 🐞 Bug Report
+description: Open a new issue for a bug that has not yet been reported
+title: "bugName"
+labels: ["bug"]
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        If this bug is related to a specific private tracker, know that support may be limited as private trackers are behind closed doors. You may be asked to perfrom light testing or HTML inspections if the issue is to be resolved.
+
+        **A tracker without anyone willing to help maintain it is likely to be removed after a time**
+
+  - type: textarea
+    id: bugDescription
+    validations:
+      required: true
+    attributes:
+      label: ✏️ Description
+      description: Explain the issue, including the text of any window alerts or things of note.
+
+  - type: textarea
+    id: consoleMessages
+    validations:
+      required: true
+    attributes:
+      label: 📄 Console Messages
+      description: Copy-paste the browser's console messages related to this bug, making sure to obfuscate any sensitive data. This will be automatically formatted into code, so no need for backticks.
+      render: console
+
+  - type: input
+    id: userscriptVersion
+    validations:
+      required: true
+    attributes:
+      label: 🐰 quiCKIE Version
+      placeholder: quiCKIE [v1.5]
+
+  - type: input
+    id: userBrowser
+    validations:
+      required: true
+    attributes:
+      label: 🖥️ Browser
+      placeholder: LibreWolf, FireFox, Chrome
+
+  - type: dropdown
+    id: userscriptManager
+    validations:
+      required: true
+    attributes:
+      label: 🐵 UserScript Manager
+      multiple: true
+      options:
+        - Violentmonkey
+        - Tampermonkey
+        - Greasemonkey
+        - Other
+
+  - type: checkboxes
+    id: userConfirmation
+    attributes:
+      label: Confirm New Issue
+      options:
+        - label: If this bug is related to a particular private tracker, I am willing to help with some testing or HTML inspections to get it fixed
+        - label: Yes, I can reproduce this bug even after disabling other UserScripts\programs that may cause interference
+          required: true
+        - label: Yes, I have searched for and confirmed this bug has not yet been reported
+          required: true
