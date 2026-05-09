@@ -25,7 +25,7 @@ If you are not sure which manager to install, the one I use and recommend above 
 
 Once you have added a **UserScript Manager** addon to your browser, simply click the **Install** link below and the manager will prompt you to install **ABSidekick**. After it has been installed, you will immediately start seeing the changes made by **ABSidekick** whenever you are on the Audiobookshelf web interface! 🥳
 
-ℹ️ When you first open the Audiobookshelf web interface, abs will add the `/audiobookshelf/` part to your URL. **ABSidekick** won't run automatically unless the URL already contains  `/audiobookshelf/` without abs needing to add it. So to fix this, you can simply add `/audiobookshelf/` to your browser bookmark, that way whenever you open the bookmark, abs doesn't need to add it for you because you are already opening the full URL.
+ℹ️ When you first open the Audiobookshelf web interface, abs will add the `/audiobookshelf/` part to your URL if you did not include it. **ABSidekick** won't run automatically unless the URL already contains  `/audiobookshelf/` without abs needing to add it. So to fix this, you can simply add `/audiobookshelf/` to your browser bookmark, that way whenever you open the bookmark, abs doesn't need to add it for you because you are already opening the full URL.
 
 ℹ️ If **ABSidekick** does not run automatically for you, then you will need to edit the `@match` line near the top of the script so that it points to your actual `ip:port`. Be aware that **ABSidekick** is configured to recieve auto-updates, so any edits you make to the script directly will be overwritten by future updates
 
