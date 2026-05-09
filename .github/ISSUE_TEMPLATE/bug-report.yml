@@ -27,7 +27,15 @@ body:
       required: true
     attributes:
       label: 🌱 ABSidekick Version
-      placeholder: ABSidekick [v0.5]
+      placeholder: v.05
+
+  - type: input
+    id: absVersion
+    validations:
+      required: true
+    attributes:
+      label: 🖥️ AudiobBookshelf Version
+      placeholder: v2.34.0
 
   - type: input
     id: userBrowser
@@ -55,7 +63,7 @@ body:
     attributes:
       label: Confirm New Issue
       options:
-        - label: Yes, I can reproduce this bug even after disabling other UserScripts\programs that may cause interference
+        - label: Yes, I can reproduce this bug even after disabling other UserScripts that may cause interference
           required: true
         - label: Yes, I have searched for and confirmed this bug has not yet been reported
           required: true

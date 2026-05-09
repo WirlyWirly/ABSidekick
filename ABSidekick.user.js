@@ -628,7 +628,7 @@ function settingsPanel() {
             'autoMatchDelay': {
                 'label': '🕓 Save Delay',
                 'type': 'int',
-                'default': '2000',
+                'default': '2500',
                 'title': 'The delay in milliseconds between when AutoMatch selects a match result and when the save button is clicked\n\nℹ️ A longer delay will give you more time to verify the match and intervene if desired'
             },
 
@@ -830,10 +830,54 @@ function settingsPanel() {
 
 // =================================== Styling ======================================
 
-// Load the fonts used by ABSidekick
-GM_addStyle("@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Roboto+Condensed:wght@500&display=swap');")
+// Global styling
+GM_addStyle(`
 
-// Styling the GM_config panel
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Roboto+Condensed:wght@500&display=swap');
+
+    /* ---------- AppBar ---------- */
+
+    #gmConfigAppBar {
+        cursor: pointer;
+        font-size: 1.2rem;
+        margin: .25rem;
+    }
+
+    /* ---------- Animation ---------- */
+
+    @keyframes blinker {
+
+        50% {
+            opacity: .2;
+        }
+
+    }
+
+    @keyframes pop {
+
+        0% {
+            transform: scale(1.1);
+            -webkit-transform: scale(1.1);
+        }
+
+        100% {
+            transform: scale(0.90);
+            -webkit-transform: scale(0.90);
+        }
+
+    }
+
+    /* ---------- Headers ---------- */
+
+    ${SETTINGS.customFont == 'Everywhere' ? `
+    *:not(.material-symbols) {
+        font-family: Roboto Condensed;
+    }` : '' }
+
+`)
+
+
+// GM_config panel styling
 GM_addStyle(`
 
     #abSidekick * {
@@ -971,46 +1015,8 @@ GM_addStyle(`
 `)
 
 
+// MatchMate styling
 GM_addStyle(`
-
-    /* ---------- AppBar ---------- */
-
-    #gmConfigAppBar {
-        cursor: pointer;
-        font-size: 1.2rem;
-        margin: .25rem;
-    }
-
-    /* ---------- Animation ---------- */
-
-    @keyframes blinker {
-
-        50% {
-            opacity: .2;
-        }
-
-    }
-
-    @keyframes pop {
-
-        0% {
-            transform: scale(1.1);
-            -webkit-transform: scale(1.1);
-        }
-
-        100% {
-            transform: scale(0.90);
-            -webkit-transform: scale(0.90);
-        }
-
-    }
-
-    /* ---------- Headers ---------- */
-
-    ${SETTINGS.customFont == 'Everywhere' ? `
-    *:not(.material-symbols) {
-        font-family: Roboto Condensed;
-    }` : '' }
 
     #appbar h1,
     #bookTitle {
