@@ -19,15 +19,15 @@ A suite of additional features to dramatically speed up your matching and allow 
 * Auto `Title` fill: If the initial *ASIN* search returns *No Results*, the title will be automatically populated into the search field, the same as when clicking the `Title` button.
 
 ## Install
-ABSidekick is a **UserScript** that is installed through a **UserScript Manager** addon in your browser. A **UserScript Manager** is just like any other browser addon, which means you can find and install one from wherever you get your browser addons.
+ABSidekick is a **UserScript** that is installed through a **UserScript Manager** addon in your browser. A **UserScript Manager** is just like any other browser addon, which means you can find and install one from your browsers web store.
 
-If you are not sure which manager to get, the one I use and recommend above all others is [ViolentMonkey](https://violentmonkey.github.io/), for its loyal development team and open-source nature. If that's not available to you, my next recommendation would be [Tampermonkey](https://www.tampermonkey.net/).
+If you are not sure which manager to install, the one I use and recommend above all others is [🐵 Violentmonkey](https://violentmonkey.github.io/), both for its fantastice development team and open-source nature. If Violentmonkey is not available to you, my next recommendation would be [Tampermonkey](https://www.tampermonkey.net/), which has broader support but is not open-source.
 
-Once you have added a **UserScript Manager** to your browser, simply click the **Install** link below and the manager will prompt you to install **ABSidekick**. After it has been installed, you will immediately start seeing the changes made by **ABSidekick** whenever you are on the Audiobookshelf web interface! 
+Once you have added a **UserScript Manager** addon to your browser, simply click the **Install** link below and the manager will prompt you to install **ABSidekick**. After it has been installed, you will immediately start seeing the changes made by **ABSidekick** whenever you are on the Audiobookshelf web interface! 🥳
 
-ℹ️ When you first open the Audiobookshelf web interface, abs will add the `/audiobookshelf/` part to your URL. **ABSidekick** won't run automatically unless the URL already contains  `/audiobookshelf/` without abs needing to add it. To fix this, you can simply add `/audiobookshelf/` to your browser bookmark, that way whenever you open the bookmark, abs doesn't need to add it for you because you are already opening the full URL.
+ℹ️ When you first open the Audiobookshelf web interface, abs will add the `/audiobookshelf/` part to your URL. **ABSidekick** won't run automatically unless the URL already contains  `/audiobookshelf/` without abs needing to add it. So to fix this, you can simply add `/audiobookshelf/` to your browser bookmark, that way whenever you open the bookmark, abs doesn't need to add it for you because you are already opening the full URL.
 
-ℹ️ If **ABSidekick** does not automatically run when you are on Audiobookshelf, you will need to edit the `@match` line near the top of the script so that it points to your actual Audiobookshelf URL. Be aware that **ABSidekick** is configured to recieve auto-updates, so any edits you make will be overwritten by future updates
+ℹ️ If **ABSidekick** does not run automatically for you, then you will need to edit the `@match` line near the top of the script so that it points to your actual `ip:port`. Be aware that **ABSidekick** is configured to recieve auto-updates, so any edits you make to the script directly will be overwritten by future updates
 
 ⚠️ UserScripts like **ABSidekick** will run **code** in your browser when you visit certain pages. It is important to be aware of this and therefore only install UserScripts from trusted sources.
 
