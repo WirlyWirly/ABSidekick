@@ -5,16 +5,24 @@
 // @name        ABSidekick
 // @author      WirlyWirly
 // @version     0.5
-// @homepage
-// @description Your sidekick when working in AudioBookShelf
+// @homepage    https://github.com/WirlyWirly/ABSidekick
+// @description Your sidekick for the AudioBookShelf web interface
 //              Written on LibreWolf via Violentmonkey
+//
 // @namespace   UserScript
 // @run-at      document-end
 
 // ----------------------------------- Matches --------------------------------------
 
-// @match       http://192.168.1.105:32060/audiobookshelf/*
+// If ABSidekick does not run, edit this line with the actual Audiobookshelf URL
+// @match       http://192.168.1.100:80/audiobookshelf/*
+
 // @include     /https?://.+/audiobookshelf/.+/
+
+// ----------------------------------- Dependencies --------------------------------------
+
+// @require     https://raw.githubusercontent.com/WirlyWirly/UserScripts/main/HelperScripts/waitForElement.js
+// @require     https://cdn.jsdelivr.net/gh/sizzlemctwizzle/GM_config@43fd0fe4de1166f343883511e53546e87840aeaf/gm_config.js
 
 // ----------------------------------- Permissions --------------------------------------
 
@@ -25,17 +33,11 @@
 // @grant       GM_registerMenuCommand
 // @grant       GM_setValue
 
-// ----------------------------------- Dependencies --------------------------------------
-
-// @require     https://raw.githubusercontent.com/WirlyWirly/UserScripts/main/HelperScripts/waitForElement.js
-// @require     https://cdn.jsdelivr.net/gh/sizzlemctwizzle/GM_config@43fd0fe4de1166f343883511e53546e87840aeaf/gm_config.js
-
 // ----------------------------------- Script Links --------------------------------------
 
-// @icon
-
-// @updateURL
-// @downloadURL
+// @icon        https://raw.githubusercontent.com/WirlyWirly/ABSidekick/main/.github/assets/icon.webp?raw=true
+// @updateURL   https://raw.githubusercontent.com/WirlyWirly/ABSidekick/main/ABSidekick.user.js?raw=true
+// @downloadURL https://raw.githubusercontent.com/WirlyWirly/ABSidekick/main/ABSidekick.user.js?raw=true
 
 // ==/UserScript==
 
@@ -53,6 +55,22 @@ document.body.appendChild(hoverCoverElement)
 hoverCoverElement.outerHTML = `<div id="hoverCoverContainer"><img src="" style="border-radius: 10px; max-height: 100%; max-width: 100%"></div>`
 
 editPanelMain()
+
+// Create the GM_config settings panel button in the #appbar
+waitForElement('#appbar a[href="/audiobookshelf/config"]', document.body).then(function(element) {
+    let settingsShortcut = document.createElement('div')
+    element.insertAdjacentElement('afterend', settingsShortcut)
+    settingsShortcut.id = 'gmConfigAppBar'
+    settingsShortcut.innerText = '🛠️'
+    settingsShortcut.title = 'Open the ABSidekick settings panel'
+    settingsShortcut.addEventListener('click', function() {
+        GM_config.open()
+    })
+
+})
+
+
+// =================================== FUNCTIONS ======================================
 
 async function editPanelMain() {
 
@@ -92,8 +110,6 @@ async function editPanelMain() {
 
 }
 
-
-// =================================== FUNCTIONS ======================================
 
 async function matchTabObservation() {
     // Setup Mutation observation in the match tab and act on any new results
@@ -814,6 +830,7 @@ function settingsPanel() {
 
 // =================================== Styling ======================================
 
+// Load the fonts used by ABSidekick
 GM_addStyle("@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Roboto+Condensed:wght@500&display=swap');")
 
 // Styling the GM_config panel
@@ -955,6 +972,14 @@ GM_addStyle(`
 
 
 GM_addStyle(`
+
+    /* ---------- AppBar ---------- */
+
+    #gmConfigAppBar {
+        cursor: pointer;
+        font-size: 1.2rem;
+        margin: .25rem;
+    }
 
     /* ---------- Animation ---------- */
 

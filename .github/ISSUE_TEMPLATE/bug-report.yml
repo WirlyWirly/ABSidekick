@@ -4,13 +4,6 @@ title: "bugName"
 labels: ["bug"]
 body:
 
-  - type: markdown
-    attributes:
-      value: |
-        If this bug is related to a specific private tracker, know that support may be limited as private trackers are behind closed doors. You may be asked to perfrom light testing or HTML inspections if the issue is to be resolved.
-
-        **A tracker without anyone willing to help maintain it is likely to be removed after a time**
-
   - type: textarea
     id: bugDescription
     validations:
@@ -33,8 +26,8 @@ body:
     validations:
       required: true
     attributes:
-      label: 🐰 quiCKIE Version
-      placeholder: quiCKIE [v1.5]
+      label: 🌱 ABSidekick Version
+      placeholder: ABSidekick [v0.5]
 
   - type: input
     id: userBrowser
@@ -62,7 +55,6 @@ body:
     attributes:
       label: Confirm New Issue
       options:
-        - label: If this bug is related to a particular private tracker, I am willing to help with some testing or HTML inspections to get it fixed
         - label: Yes, I can reproduce this bug even after disabling other UserScripts\programs that may cause interference
           required: true
         - label: Yes, I have searched for and confirmed this bug has not yet been reported
