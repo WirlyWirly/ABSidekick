@@ -23,7 +23,9 @@ ABSidekick is a **UserScript** that is installed through a **UserScript Manager*
 
 If you are not sure which manager to get, the one I use and recommend above all others is [ViolentMonkey](https://violentmonkey.github.io/), for its loyal development team and open-source nature. If that's not available to you, my next recommendation would be [Tampermonkey](https://www.tampermonkey.net/).
 
-Once you have added a **UserScript Manager** to your browser, simply click the **Install** link below and the manager will prompt you to install **ABSidekick**. After it has been installed, you will immediately start seeing the changes made by **ABSidekick** whenever you are on the Audiobookshelf web interface. You may have to refresh at first, since Audiobookshelf has some weird behaviours when you first go to the  site.
+Once you have added a **UserScript Manager** to your browser, simply click the **Install** link below and the manager will prompt you to install **ABSidekick**. After it has been installed, you will immediately start seeing the changes made by **ABSidekick** whenever you are on the Audiobookshelf web interface! 
+
+ℹ️ When you first open the Audiobookshelf web interface, abs will redirected you slightly by adding `/audiobookshelf/` to the URL. This redirect makes it so that **ABSidekick** does not run when you first load the page, becuase it will only run when the URL contains `/audiobookshelf/` without abs needing to redirect you to it.. To fix this, you can simply add `/audiobookshelf/` to your browser bookmark, that way whenever you open the bookmark, abs doesn't need to redirect you because you are already opening the correct URL.
 
 ℹ️ If **ABSidekick** does not automatically run when you are on Audiobookshelf, you will need to edit the `@match` line near the top of the script so that it points to your actual Audiobookshelf URL. Be aware that **ABSidekick** is configured to recieve auto-updates, so any edits you make will be overwritten by future updates
 
