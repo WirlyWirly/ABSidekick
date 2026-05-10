@@ -700,14 +700,14 @@ function settingsPanel() {
                 'label': '↔️ Panel Width',
                 'type': 'text',
                 'default': '1200px',
-                'title': 'The width of the edit panel when the Match tab is active'
+                'title': 'The width of the Edit Panel when the Match tab is active'
             },
 
             'matchTabHeight': {
                 'label': '↕️ Panel Height',
                 'type': 'text',
                 'default': '80%',
-                'title': 'The height of the edit panel when the Match tab is active'
+                'title': 'The height of the Edit Panel when the Match tab is active'
             },
 
             'navigationDirection': {
@@ -725,7 +725,7 @@ function settingsPanel() {
                 'title': "A comma seperated list of tags that will be applied to the book when clicking the 'Save + 🏷️' button\n\nℹ️ Setting a unique tag is a simple way to distinguish books that have already been matched, either for simple record keeping or for future scripting"
             },
 
-            'customFont': {
+            'customFontToggle': {
                 'label': '✏️ Roboto Condensed',
                 'type': 'select',
                 'options': ['Everywhere', 'Edit Panel', 'Off'],
@@ -760,15 +760,16 @@ function settingsPanel() {
                 reloadWindow = false
 
                 // Create Section Headers
-                function settingsHeader(text, beforeElement) {
+                function settingsHeader(text, beforeElement, titleText = '') {
                     let element = document.createElement('div')
                     element.innerText = text
-                    element.classList.add('settingsHeader')
+                    element.classList.add('settingsHeaderRow')
+                    element.title = titleText
                     beforeElement.insertAdjacentElement('beforebegin', element)
                 }
 
-                settingsHeader('Match Tab', document.querySelector('#abSidekick_autoMatchConfidence_var'))
-                settingsHeader('Global', document.querySelector('#abSidekick_customFont_var'))
+                settingsHeader('Match Tab', document.querySelector('#abSidekick_autoMatchConfidence_var'), 'These settings apply to features of the Match Tab')
+                settingsHeader('Globals', document.querySelector('#abSidekick_customFontToggle_var'), 'These settings apply to all ABSidekick features and possibly throughout the Audiobookshelf interface')
 
                 // Obfuscate apiKey input
                 let apiKeyElement = document.getElementById('abSidekick_field_apiKey')
@@ -850,7 +851,7 @@ function settingsPanel() {
         matchTabWidth: GM_config.get('matchTabWidth'),
 
         navigationDirection: GM_config.get('navigationDirection'),
-        customFont: GM_config.get('customFont'),
+        customFontToggle: GM_config.get('customFontToggle'),
         saveTagsList: GM_config.get('saveTagsList').split(','),
         apiKey: GM_config.get('apiKey'),
         audibleTemplate: GM_config.get('audibleTemplate'),
@@ -919,7 +920,7 @@ GM_addStyle(`
 
     /* ---------- Headers ---------- */
 
-    ${SETTINGS.customFont == 'Everywhere' ? `
+    ${SETTINGS.customFontToggle == 'Everywhere' ? `
     *:not(.material-symbols) {
         font-family: var(--fonts-roboto);
     }` : '' }
@@ -938,7 +939,7 @@ GM_addStyle(`
         backdrop-filter: blur(9px) !important;
         background: #191d2aa3 !important;
         border-radius: 10px !important;
-        border: 1px solid #2C3E50 !important;
+        border: 2px solid #2C3E50 !important;
         box-shadow: 0px 0px 15px #2C3E50 !important;
         color: #ffffff !important;
         height: auto !important;
@@ -969,11 +970,11 @@ GM_addStyle(`
         color: #95a5a6;
         display: block;
         font-size: .9rem;
-        margin: 5px 0px 0px 0px;
+        margin: 10px 0px 0px 0px;
 
     }
 
-    #abSidekick div.settingsHeader {
+    #abSidekick div.settingsHeaderRow {
         border-bottom: 2px solid #2C3E50;
         border-top: 2px solid #2C3E50;
         cursor: default;
@@ -983,6 +984,7 @@ GM_addStyle(`
         justify-content: center;
         margin: 12px auto 8px auto;
         text-shadow: 0px 0px 10px #2078b9;
+        padding: 5px;
     }
 
     #abSidekick div.config_var {
@@ -1091,7 +1093,7 @@ GM_addStyle(`
 
     }
 
-    ${SETTINGS.customFont == 'Edit Panel' ? `
+    ${SETTINGS.customFontToggle == 'Edit Panel' ? `
     #editPanel *:not(.material-symbols) {
         font-family: var(--fonts-roboto);
     }` : '' }
