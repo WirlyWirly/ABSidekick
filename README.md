@@ -1,6 +1,7 @@
 # 🌱 ABSidekick
 <div align="center">
   <img src=".github/assets/preview.png" alt="absidekick" width="100%" />
+  <img src=".github/assets/preview2.png" alt="absidekick" width="100%" />
 </div><br>
 
 This [UserScript](https://openuserjs.org/about/Userscript-Beginners-HOWTO) will add additional features\functionality directly into the [AudioBookshelf](https://www.audiobookshelf.org/) web interface.
@@ -22,6 +23,13 @@ A suite of additional features to dramatically speed up your matching and allow 
 * **Hover Covers**: Hover your mouse over cover images to quickly enlarge them for detailed viewing
 * Auto `Title` fill: If the initial *ASIN* search returns *No Results*, the title will be automatically populated into the search field, the same as when clicking the `Title` button.
 
+## Item Page
+* `Audible` button: Using the *ASIN* of the item, open a new tab to its *Audible* page
+* `Goodreads` button: Using the *Title* of the item, perform a *Goodreads* search
+* **Background Blur**: Add some color to the page by applying a colorful blur effect based on the cover image
+* **Black Glass**: Give the various floating items a black glass effect
+* **Hover Cover**: Hover your mouse over the cover image to quickly enlarge it for detailed viewing
+  
 ## Install
 ABSidekick is a **UserScript**, which means it is **JavaScript** code that get executed by a **UserScript Manager**. A *UserScript Manager* is a browser addon, who's purpose is to run these *UserScripts* when you visit a site they are programmed to operate on. You can can find and install a *UserScript Manager* addon from your browsers web store...
 
