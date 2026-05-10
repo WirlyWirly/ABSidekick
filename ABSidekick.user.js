@@ -4,7 +4,7 @@
 
 // @name        ABSidekick
 // @author      WirlyWirly
-// @version     0.5
+// @version     0.6
 // @homepage    https://github.com/WirlyWirly/ABSidekick
 // @description Your sidekick for the AudioBookShelf web interface
 //              Written on LibreWolf via Violentmonkey
@@ -21,7 +21,6 @@
 
 // ----------------------------------- Dependencies --------------------------------------
 
-// @require     https://raw.githubusercontent.com/WirlyWirly/UserScripts/main/HelperScripts/waitForElement.js
 // @require     https://cdn.jsdelivr.net/gh/sizzlemctwizzle/GM_config@43fd0fe4de1166f343883511e53546e87840aeaf/gm_config.js
 
 // ----------------------------------- Permissions --------------------------------------
@@ -50,7 +49,7 @@ let absURL = document.URL.match(/^(.+?\/audiobookshelf)\//)[1]
 let SETTINGS = settingsPanel()
 
 editPanelMain()
-//itemPageMain()
+appContentMain()
 
 // Create the GM_config settings panel button in the #appbar
 waitForElement('#appbar a[href="/audiobookshelf/config"]', document.body).then(function(element) {
@@ -73,28 +72,23 @@ hoverCoverElement.outerHTML = `<div id="hoverCoverContainer"><img src="" style="
 
 // =================================== FUNCTIONS ======================================
 
-async function itemPageMain() {
-    // Wait for a 'Item Page' to be loaded and then proceed with adding functionality
+async function appContentMain() {
+    // Setup a MutationObserver to monitor the #app-content element for changes, which indicates a new page-type has been loaded and needs to be handled
 
     let appContent = await waitForElement('#app-content', document.body)
+
+    // Check if the initial page load was already an itemPage
+    appContent.querySelector('#item-page-wrapper') ? injectItemPage(appContent.querySelector('#item-page-wrapper')) : null
 
     let appContentObserver = new MutationObserver(async function(mutations) {
         // The actions to perform when new mutations are detected to the '#app-content' element
 
-        let addedNodes = []
-        mutations.forEach((record) => { addedNodes.push(record.addedNodes) })
+        let itemPage = appContent.querySelector('div > #item-page-wrapper:not(.pageProcessed)')
 
-        console.log(addedNodes)
-        for ( let node in addedNodes ) {
+        if ( itemPage ) {
+            // This is a itemPage (book page)
 
-            if (node.id == 'item-page-wrapper' ) {
-            // A new item page was loaded,
-            console.log(node)
-
-            // Set identifiers for the important elements
-
-            }
-
+            injectItemPage(itemPage)
         }
 
     })
@@ -111,7 +105,9 @@ async function editPanelMain() {
 
     // Observer the <body> child elements until the <div> of the edit panel [data-v-779b4e02] is loaded
     let modalOverlay = await waitForElement('body > div.modal[data-v-779b4e02]', document.body, false)
-    let editPanel = await waitForElement('div.relative:has(#formWrapper)', modalOverlay)
+
+    // Verify this modalOverlay contains the Edit Panel by checking that is has the 6 <button> elements that are used to change tabs
+    let editPanel = await waitForElement('div.relative:has(div[role="tablist"] > button:last-child:nth-child(6))', modalOverlay)
 
     // Set identifiers for the edit panel and important elements
     modalOverlay.id = 'modalOverlay'
@@ -119,17 +115,17 @@ async function editPanelMain() {
 
     editPanel.id = 'editPanel'
     editPanel.querySelector('div[role="tablist"]').id = 'editPanelTabs'
-    editPanel.querySelector('div.absolute[role="tablist"] :nth-child(1)').id = 'detailsTab'
-    editPanel.querySelector('div.absolute[role="tablist"] :nth-child(2)').id = 'coverTab'
-    editPanel.querySelector('div.absolute[role="tablist"] :nth-child(3)').id = 'chaptersTab'
-    editPanel.querySelector('div.absolute[role="tablist"] :nth-child(4)').id = 'filesTab'
-    editPanel.querySelector('div.absolute[role="tablist"] :nth-child(5)').id = 'matchTab'
-    editPanel.querySelector('div.absolute[role="tablist"] :nth-child(6)').id = 'toolsTab'
+    editPanel.querySelector('div.absolute[role="tablist"] button:nth-child(1)').id = 'detailsTab'
+    editPanel.querySelector('div.absolute[role="tablist"] button:nth-child(2)').id = 'coverTab'
+    editPanel.querySelector('div.absolute[role="tablist"] button:nth-child(3)').id = 'chaptersTab'
+    editPanel.querySelector('div.absolute[role="tablist"] button:nth-child(4)').id = 'filesTab'
+    editPanel.querySelector('div.absolute[role="tablist"] button:nth-child(5)').id = 'matchTab'
+    editPanel.querySelector('div.absolute[role="tablist"] button:nth-child(6)').id = 'toolsTab'
 
     editPanel.querySelector('button[aria-label="Previous"]').id = 'navigateRight'
     editPanel.querySelector('button[aria-label="Next"]').id = 'navigateLeft'
 
-    // -- MatchTab Observation ---
+    // -- MatchTab ---
     let matchTabButton = editPanel.querySelector('#matchTab')
     matchTabButton.innerText = '🌱 Match'
     matchTabButton.addEventListener('click', async function(event) {
@@ -137,28 +133,191 @@ async function editPanelMain() {
 
         await waitForElement('#match-wrapper', editPanel)
 
-        // Check if this match tab does not have a 'Title' button, indicating it needs a MutationObserver
-        !editPanel.querySelector('#buttonTitle') ? matchTabObservation() : null
+        // Check that this match tab does not have a 'Title' button, which indicates that it needs injections
+        !editPanel.querySelector('#buttonTitle') ? injectMatchTab() : null
 
     })
 
 
 }
 
+async function injectItemPage(itemPage) {
+    // Inject the current itemPage with custom elements and setup a MutationObserver to monitor for any new match results
 
-async function matchTabObservation() {
-    // Setup Mutation observation in the match tab and act on any new results
+    itemPage.classList.add('pageProcessed')
+
+    // Add identifiers to the various elements of interest
+    setId(itemPage, '#item-page-wrapper > div > :nth-child(1)', 'coverSection')
+    setId(itemPage, '#item-page-wrapper > div > :nth-child(2)', 'metadataSection')
+
+    setId(itemPage, '#coverSection img[src*="/api/items/"]', 'itemCover')
+
+    // - MetaData rows -
+    setId(itemPage, '#metadataSection > div.flex > div.mb-4', 'metaTop')
+    setId(itemPage, '#metaTop h1', 'itemTitle')
+    setId(itemPage, '#metaTop > :nth-child(2)', 'itemSubtitle')
+    setId(itemPage, '#metaTop > a[href*="/series/"]', 'itemSeries')
+    setId(itemPage, '#metaTop a[href*="/audiobookshelf/author/"]', 'itemAuthor')
+    setId(itemPage, '#metaTop > :last-child[data-v-338ea578', 'itemMetaRows')
+
+    // - Buttons above synopsis -
+    setId(itemPage, '#metadataSection > div:has(button.abs-btn)', 'buttonsRow')
+    setId(itemPage, '#buttonsRow > button.abs-btn', 'itemPlay')
+
+    // - Library files dropdown
+    setId(itemPage, '#metadataSection > :last-child', 'libraryFiles')
+
+    // Cover Container
+    itemPage.querySelector('#itemCover').parentElement.parentElement.classList.add('itemCover')
+
+    // Background blur
+    if ( SETTINGS.itemBackgroundBlur ) {
+
+        let coverURL = itemPage.querySelector('#itemCover').src
+        itemPage.parentElement.style.background = `url('${coverURL}') no-repeat center center fixed`
+        itemPage.parentElement.style.backgroundSize = 'cover'
+        itemPage.classList.add('blurEffect')
+
+    }
+
+    // Meta Glass
+    if ( SETTINGS.itemMetaGlass ) {
+
+        // Metadata rows
+        itemPage.querySelector('#itemMetaRows').classList.add('itemMetaRows')
+
+    }
+
+    // Progress Glass
+    if ( SETTINGS.itemProgressGlass ) {
+        if ( itemPage.querySelector('#metadataSection > :nth-child(2)').innerText.match(/Started \d+\/\d+\/\d+/) ) {
+            itemPage.querySelector('#metadataSection > :nth-child(2)').classList.add('itemProgress')
+        }
+
+    }
+
+    // Buttons Glass
+    if ( SETTINGS.itemButtonGlass ) {
+        for ( let button of itemPage.querySelectorAll('#buttonsRow button.bg-primary') ) {
+            button.classList.add('itemButtonGlass')
+        }
+    }
+
+    // Summary Glass
+    if ( SETTINGS.itemSummaryGlass ) {
+        // Description
+        itemPage.querySelector('#item-description').parentElement.classList.add('descriptionContainer')
+
+    }
+
+    // Dropdown Glass
+    if ( SETTINGS.itemDropdownGlass ) {
+        for ( dropdownBar of itemPage.querySelectorAll('#metadataSection div.w-full.bg-primary:has(p)') ) {
+            dropdownBar.classList.add('itemDropdown')
+        }
+
+    }
+
+    // Audible Button
+    let audibleButton = document.createElement('button')
+    audibleButton.innerText = 'Audible'
+    audibleButton.setAttribute('class', 'bg-primary border-gray-600 border rounded-md mx-0.5')
+    audibleButton.classList.add('itemButton')
+    SETTINGS.itemButtonGlass ? audibleButton.classList.add('itemButtonGlass') : null
+    audibleButton.title = 'Open the Audible page of this item\n\nℹ️ Only works if the item has a ASIN value'
+    audibleButton.addEventListener('click', function(event) {
+        // Open the Audible page using the available ASIN
+
+        if ( metadata.media.metadata.asin ) {
+            let asinURL = SETTINGS.audibleTemplate.replace(/%asin%/, metadata.media.metadata.asin)
+            window.open(asinURL, '_blank')
+        } else {
+            this.innerText = 'No ASIN'
+        }
+
+    })
+
+    // Goodreads Button
+    let goodreadsButton = document.createElement('button')
+    goodreadsButton.innerText = 'Goodreads'
+    goodreadsButton.setAttribute('class', 'bg-primary border-gray-600 border rounded-md mx-0.5')
+    goodreadsButton.classList.add('itemButton')
+    SETTINGS.itemButtonGlass ? goodreadsButton.classList.add('itemButtonGlass') : null
+    goodreadsButton.title = 'Search Goodreads for this title'
+    goodreadsButton.addEventListener('click', function(event) {
+        // Open the Audible page using the available ASIN
+
+        let goodreadsURL = SETTINGS.goodreadsTemplate.replace(/%title%/, encodeURI(metadata.media.metadata.title))
+        console.log(goodreadsURL)
+        window.open(goodreadsURL, '_blank')
+
+    })
+
+    itemPage.querySelector('#buttonsRow > div:last-child').insertAdjacentElement('beforebegin', audibleButton)
+    itemPage.querySelector('#buttonsRow > div:last-child').insertAdjacentElement('beforebegin', goodreadsButton)
+
+    // Hover Cover
+    let hoverElement = document.createElement('div')
+    hoverElement.innerText = '👀'
+    hoverElement.classList.add('hoverCoverToggle')
+    hoverElement.addEventListener('mouseenter', function(event) {
+        // Display the enlarged item cover
+        let { clientX, clientY } = event
+        viewHoverCover(`${absURL}/api/items/${itemId}/cover?raw=1`, clientX, clientY)
+
+    })
+
+    hoverElement.addEventListener('mouseout', function(event) {
+        // Stop displaying the enlarged result cover
+        let hoverCoverElement = document.getElementById('hoverCoverContainer')
+        hoverCoverElement.classList.remove('active')
+        hoverCoverElement.querySelector('img').src = ''
+    })
+
+    itemPage.querySelector('#itemCover').insertAdjacentElement('afterend', hoverElement)
+
+    // Fetch item metadata
+    let itemId = document.getElementById('itemCover').src.match(/\/items\/(.+?)\//)[1]
+    let metadata = await fetchItemMedata(itemId)
+
+}
+
+
+async function fetchItemMedata(itemId) {
+    // Use the provided itemId to GET the metadata from the api
+
+    let response = await fetch(`${absURL}/api/items/${itemId}`, {
+        headers: { 'Authorization': `Bearer ${SETTINGS.apiKey}` }
+    })
+
+    let metadata = await response.json()
+
+    return metadata
+
+}
+
+
+function setId(baseElement, targetSelector, idValue) {
+    // Check the baseElement for the targetSelector and if it exists set the idValue
+
+    baseElement.querySelector(targetSelector) ? baseElement.querySelector(targetSelector).id = idValue : null
+
+}
+
+
+async function injectMatchTab() {
+    // Inject the MatchTab with custom elements and setup a MutationObserver to monitor for any new match results
 
     let editPanel = document.querySelector('#editPanel')
     let matchTab = editPanel.querySelector('#match-wrapper')
 
-    // Add identifiers to the various elements
-    matchTab.querySelector(':nth-child(1)').id = 'searchForm'
-    matchTab.querySelector('#searchForm input[placeholder="Search.."]').id = 'inputTitle'
+    // Add identifiers to the various elements of interest
+    setId(matchTab, ':nth-child(1)', 'searchForm')
+    setId(matchTab, '#searchForm input[placeholder="Search.."]', 'inputTitle')
     matchTab.querySelector('#searchForm input[placeholder="Search.."]').parentElement.previousElementSibling.id = 'labelInputTitle'
-    matchTab.querySelector('#searchForm input[placeholder="Author"]').id = 'inputAuthor'
-    matchTab.querySelector('#searchForm button[type="Submit"]').id = 'buttonSearch'
-    matchTab.querySelector('div.matchListWrapper').id = 'resultsList'
+    setId(matchTab, '#searchForm input[placeholder="Author"]', 'inputAuthor')
+    setId(matchTab, '#searchForm button[type="Submit"]', 'buttonSearch')
+    setId(matchTab, 'div.matchListWrapper', 'resultsList')
     //matchTab.querySelector('#searchForm button[aria-label^="Provider"]').id = 'buttonProvider'
 
     // Create the GM_config settings shortcut
@@ -292,7 +451,7 @@ async function matchTabObservation() {
 
                 }, 500)
 
-                // The element that will contain the MatchMate buttons
+                // The element that will contain the ABSidekick buttons
                 let buttonHolder = document.createElement('div')
                 buttonHolder.classList.add('scriptButtons')
 
@@ -300,7 +459,7 @@ async function matchTabObservation() {
                 let saveTagButton = document.createElement('button')
                 saveTagButton.innerText = `Save + 🏷️`
                 saveTagButton.title = `Save this match result, add the custom tags, then continue to the next book\n\n🏷️ Tags: ${SETTINGS.saveTagsList}`
-                saveTagButton.classList.add('saveResultTags', 'matchMateButton')
+                saveTagButton.classList.add('saveResultTags', 'resultButton')
                 saveTagButton.addEventListener('click', function(event) {
 
                     if ( SETTINGS.apiKey == '' ) {
@@ -316,7 +475,7 @@ async function matchTabObservation() {
                 let saveResultButton = document.createElement('button')
                 saveResultButton.innerText = 'Save Match'
                 saveResultButton.title = "Save this match result then continue to the next book\n\nℹ️ This is the same as clicking the 'Submit' button of the match result"
-                saveResultButton.classList.add('saveResult', 'matchMateButton')
+                saveResultButton.classList.add('saveResult', 'resultButton')
                 saveResultButton.addEventListener('click', function(event) {
                     event.button == 0 ? saveResult(this) : null
                     observer.disconnect()
@@ -326,7 +485,7 @@ async function matchTabObservation() {
                 let asinButton = document.createElement('button')
                 asinButton.innerText = 'Audible'
                 asinButton.title = 'Open the Audible page of this match result\n\nℹ️ Only works if the match result has an ASIN'
-                asinButton.classList.add('asinSearch', 'matchMateButton')
+                asinButton.classList.add('asinSearch', 'resultButton')
                 asinButton.addEventListener('mouseup', function(event) {
                     event.button == 0 ? audibleLookup(this) : null
                 })
@@ -556,11 +715,7 @@ async function saveResult(matchButton, additionalTags = false) {
     if ( additionalTags ) {
 
         // GET the newly saved tags
-        let response = await fetch(`${absURL}/api/items/${SETTINGS.previousId}?token=${SETTINGS.apiKey}`, {
-            headers: { 'Authorization': `Bearer ${SETTINGS.apiKey}` }
-        })
-
-        let metadata = await response.json()
+        let metadata = await fetchItemMedata(SETTINGS.previousId)
         let currentTags = metadata.media.tags
 
         // PATCH the new + custom tags
@@ -631,6 +786,39 @@ async function audibleLookup(asinButton) {
     backArrowElement.click()
 
     asinURL ? window.open(asinURL, '_blank') : asinButton.innerText = 'No ASIN'
+
+}
+
+
+function waitForElement(cssTarget, observeTarget = document.body, observeSubTree = true) {
+    // Wait until the cssTarget exists within the observeTarget and then resolve the promise
+    // Source: https://stackoverflow.com/a/61511955
+
+    return new Promise( function(resolve) {
+
+        if ( observeTarget.querySelector(cssTarget) ) {
+            // The cssTarget already exists within the observeTarget, so immediately resolve the promise
+            return resolve(observeTarget.querySelector(cssTarget))
+        }
+
+        const observer = new MutationObserver( mutations => {
+            // The actions to take when there are new mutations to the observeTarget
+
+            if ( observeTarget.querySelector(cssTarget) ) {
+                // The cssTarget has been found within the observeTarget
+                observer.disconnect()
+                resolve(observeTarget.querySelector(cssTarget))
+            }
+        })
+
+        // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
+        try {
+            observer.observe(observeTarget, { childList: true, subtree: observeSubTree })
+        } catch (error) {
+            // console.log(error)
+        }
+
+    })
 
 }
 
@@ -725,6 +913,48 @@ function settingsPanel() {
                 'title': "A comma seperated list of tags that will be applied to the book when clicking the 'Save + 🏷️' button\n\nℹ️ Setting a unique tag is a simple way to distinguish books that have already been matched, either for simple record keeping or for future scripting"
             },
 
+            'itemBackgroundBlur': {
+                'label': 'Background Blur',
+                'type': 'checkbox',
+                'default': true,
+                'title': 'Use the cover image to provide a blurred background affect'
+            },
+
+            'itemMetaGlass': {
+                'label': 'Meta Glass',
+                'type': 'checkbox',
+                'default': false,
+                'title': 'Apply a black glass effect to the metadata rows'
+            },
+
+            'itemProgressGlass': {
+                'label': 'Progress Glass',
+                'type': 'checkbox',
+                'default': true,
+                'title': 'Apply a black glass effect to the progress indicator'
+            },
+
+            'itemButtonGlass': {
+                'label': 'Button Glass',
+                'type': 'checkbox',
+                'default': true,
+                'title': 'Apply a black glass effect to the buttons'
+            },
+
+            'itemSummaryGlass': {
+                'label': 'Summary Glass',
+                'type': 'checkbox',
+                'default': true,
+                'title': 'Apply a black glass effect to the summary text'
+            },
+
+            'itemDropdownGlass': {
+                'label': 'Dropdown Glass',
+                'type': 'checkbox',
+                'default': true,
+                'title': 'Apply a black glass effect to the dropdown tables'
+            },
+
             'customFontToggle': {
                 'label': '✏️ Roboto Condensed',
                 'type': 'select',
@@ -751,7 +981,14 @@ function settingsPanel() {
                 'label': '🔎 Audible Template',
                 'type': 'text',
                 'default': 'https://www.audible.com/pd/%asin%',
-                'title': "The search template URL that will be used when clicking a 'Audible' button\n\nℹ️ The %asin% placeholder will be replaced with the actual ASIN of the match result"
+                'title': "The search template URL that will be used when clicking a 'Audible' button\n\nℹ️ The %asin% placeholder will be replaced with the actual ASIN of the relevent item"
+            },
+
+            'goodreadsTemplate': {
+                'label': '🔎 Goodreads Template',
+                'type': 'text',
+                'default': 'https://www.goodreads.com/search?q=%title%',
+                'title': "The search template URL that will be used when clicking a 'Goodreads' button\n\nℹ️ The %title% placeholder will be replaced with the actual title of the relevant item"
             },
 
         },
@@ -769,6 +1006,7 @@ function settingsPanel() {
                 }
 
                 settingsHeader('Match Tab', document.querySelector('#abSidekick_autoMatchConfidence_var'), 'These settings apply to features of the Match Tab')
+                settingsHeader('Item Pages', document.querySelector('#abSidekick_itemBackgroundBlur_var'), 'These settings apply to item (book) pages')
                 settingsHeader('Globals', document.querySelector('#abSidekick_customFontToggle_var'), 'These settings apply to all ABSidekick features and possibly throughout the Audiobookshelf interface')
 
                 // Obfuscate apiKey input
@@ -838,6 +1076,7 @@ function settingsPanel() {
             year: '',
         },
 
+        // Match Tab
         autoMatchConfidence: GM_config.get('autoMatchConfidence'),
         autoMatchDelay: GM_config.get('autoMatchDelay'),
         autoMatchTarget: GM_config.get('autoMatchTarget'),
@@ -850,11 +1089,22 @@ function settingsPanel() {
         matchTabHeight: GM_config.get('matchTabHeight'),
         matchTabWidth: GM_config.get('matchTabWidth'),
 
+        // Item Page
+        itemBackgroundBlur: GM_config.get('itemBackgroundBlur'),
+        itemMetaGlass: GM_config.get('itemMetaGlass'),
+        itemProgressGlass: GM_config.get('itemProgressGlass'),
+        itemButtonGlass: GM_config.get('itemButtonGlass'),
+        itemSummaryGlass: GM_config.get('itemSummaryGlass'),
+        itemDropdownGlass: GM_config.get('itemDropdownGlass'),
+
+        // Global
         navigationDirection: GM_config.get('navigationDirection'),
         customFontToggle: GM_config.get('customFontToggle'),
         saveTagsList: GM_config.get('saveTagsList').split(','),
         apiKey: GM_config.get('apiKey'),
         audibleTemplate: GM_config.get('audibleTemplate'),
+        goodreadsTemplate: GM_config.get('goodreadsTemplate'),
+
     }
 
     return SETTINGS
@@ -862,73 +1112,7 @@ function settingsPanel() {
 }
 
 
-// =================================== Styling ======================================
-
-// Global styling
-GM_addStyle(`
-
-@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Roboto+Condensed:wght@500&display=swap');
-
-    :root {
-        --fonts-lilita: 'Lilita One', 'Roboto Condensed', 'Source Sans Pro';
-        --fonts-roboto: 'Roboto Condensed', 'Source Sans Pro';
-    }
-
-    /* ---------- AppBar ---------- */
-
-    #gmConfigAppBar {
-        cursor: pointer;
-        font-size: 1.2rem;
-        margin: .25rem;
-    }
-
-    /* ---------- Animations ---------- */
-
-    @keyframes blinker {
-
-        50% {
-            opacity: .2;
-        }
-
-    }
-
-    @keyframes textglow {
-
-        0% {
-            text-shadow: 0px 0px 5px #2078b9;
-        }
-
-        100% {
-            text-shadow: 0px 0px 20px #2078b9;
-        }
-
-    }
-
-    @keyframes pop {
-
-        0% {
-            transform: scale(1.1);
-            -webkit-transform: scale(1.1);
-        }
-
-        100% {
-            transform: scale(0.90);
-            -webkit-transform: scale(0.90);
-        }
-
-    }
-
-    /* ---------- Headers ---------- */
-
-    ${SETTINGS.customFontToggle == 'Everywhere' ? `
-    *:not(.material-symbols) {
-        font-family: var(--fonts-roboto);
-    }` : '' }
-
-`)
-
-
-// GM_config panel styling
+// Settings panel styling
 GM_addStyle(`
 
     #abSidekick * {
@@ -1024,7 +1208,8 @@ GM_addStyle(`
 
     #abSidekick #abSidekick_field_saveTagsList,
     #abSidekick #abSidekick_field_apiKey,
-    #abSidekick #abSidekick_field_audibleTemplate {
+    #abSidekick #abSidekick_field_audibleTemplate,
+    #abSidekick #abSidekick_field_goodreadsTemplate {
         width: 155px;
     }
 
@@ -1068,9 +1253,65 @@ GM_addStyle(`
 `)
 
 
-// MatchMate styling
+// =================================== Styling ======================================
+
+// Global styling
 GM_addStyle(`
 
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Roboto+Condensed:wght@500&display=swap');
+
+    :root {
+        --fonts-lilita: 'Lilita One', 'Roboto Condensed', 'Source Sans Pro';
+        --fonts-roboto: 'Roboto Condensed', 'Source Sans Pro';
+    }
+
+    /* ---------- AppBar ---------- */
+
+    #gmConfigAppBar {
+        cursor: pointer;
+        font-size: 1.2rem;
+        margin: .25rem;
+    }
+
+    /* ---------- Animations ---------- */
+
+    @keyframes blinker {
+
+        50% {
+            opacity: .2;
+        }
+
+    }
+
+    @keyframes textglow {
+
+        0% {
+            text-shadow: 0px 0px 5px #2078b9;
+        }
+
+        100% {
+            text-shadow: 0px 0px 20px #2078b9;
+        }
+
+    }
+
+    @keyframes pop {
+
+        0% {
+            transform: scale(1.1);
+            -webkit-transform: scale(1.1);
+        }
+
+        100% {
+            transform: scale(0.90);
+            -webkit-transform: scale(0.90);
+        }
+
+    }
+
+    /* ---------- Headers ---------- */
+
+    #itemTitle > div,
     #appbar h1,
     #bookTitle {
         color: #efefef;
@@ -1078,6 +1319,80 @@ GM_addStyle(`
         font-size: 2rem;
         text-shadow: 0px 0px 15px #000000;
     }
+
+
+    ${SETTINGS.customFontToggle == 'Everywhere' ? `
+    *:not(.material-symbols) {
+        font-family: var(--fonts-roboto);
+    }` : '' }
+
+`)
+
+// ItemPage styling
+
+GM_addStyle(`
+
+    .itemBackground {
+    }
+
+    .blurEffect {
+        backdrop-filter: blur(75px);
+    }
+
+
+    .itemMetaRows,
+    .descriptionContainer {
+        background: #00000059;
+        border-radius: 5px;
+        padding: 10px;
+    }
+
+    .itemMetaRows {
+        padding: 1px 0px 15px 20px;
+    }
+
+    .itemProgress {
+        background: #00000059;
+    }
+
+    .itemButton {
+        padding: 5px 8px 5px 8px;
+    }
+
+    .itemButton:hover {
+        background: #393939;
+    }
+
+    .itemButtonGlass {
+        background: #00000059;
+        border: none;
+    }
+
+    .itemButtonGlass:hover {
+        background: #00000082;
+        border: none;
+    }
+
+    .itemDropdown {
+        background: #00000059;
+    }
+
+    div:has(.itemDropdown) table {
+        border: none;
+    }
+
+    div:has(.itemDropdown) table tr {
+        background: #00000082;
+    }
+    div:has(.itemDropdown) table tr:nth-child(2n) {
+        background: #00000059;
+    }
+
+`)
+
+
+// MatchTab styling
+GM_addStyle(`
 
     /* ---------- Edit Panel ---------- */
 
@@ -1164,6 +1479,7 @@ GM_addStyle(`
         padding: 2px 0px 0.5rem 2px;
     }
 
+    .itemCover,
     .resultCover {
         /* match cover size */
         height: unset;
@@ -1183,6 +1499,7 @@ GM_addStyle(`
         border: 1px solid #000000;
     }
 
+    .hoverCoverToggle,
     .resultCoverDimensions {
         /* cover dimensions */
         background: #0000006e;
@@ -1193,7 +1510,13 @@ GM_addStyle(`
         position: absolute;
         top: 5px;
         width: fit-content;
+        z-index: 999;
     }
+
+    .hoverCoverToggle {
+        font-size: 1rem;
+    }
+
 
     .resultMeta {
         /* match metadata size */
@@ -1236,7 +1559,7 @@ GM_addStyle(`
 
     }
 
-    /* ---------- MatchMate Buttons ---------- */
+    /* ---------- Match Result Buttons ---------- */
 
     div.scriptButtons {
         display: grid;
@@ -1245,8 +1568,8 @@ GM_addStyle(`
         gap: 15px;
     }
 
-    button.matchMateButton {
-        /* matchMate Button sizes */
+    button.resultButton {
+        /* ABSidekick Button sizes */
         border-radius: var(--radius-md);
         border: none;
         cursor: pointer;
@@ -1288,6 +1611,7 @@ GM_addStyle(`
     /* ---------- Enlarged Cover Hover ---------- */
 
     #hoverCoverContainer {
+        background: #00000050;
         display: none;
     }
 
