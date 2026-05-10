@@ -50,7 +50,7 @@ let absURL = document.URL.match(/^(.+?\/audiobookshelf)\//)[1]
 let SETTINGS = settingsPanel()
 
 editPanelMain()
-itemPageMain()
+//itemPageMain()
 
 // Create the GM_config settings panel button in the #appbar
 waitForElement('#appbar a[href="/audiobookshelf/config"]', document.body).then(function(element) {
@@ -728,7 +728,7 @@ function settingsPanel() {
             'customFont': {
                 'label': '✏️ Roboto Condensed',
                 'type': 'select',
-                'options': ['Everywhere', 'EditPanel', 'Off'],
+                'options': ['Everywhere', 'Edit Panel', 'Off'],
                 'default': 'Everywhere',
                 'title': 'Set Roboto Condensed as the default font'
             },
@@ -737,7 +737,7 @@ function settingsPanel() {
                 'label': '🖼️ Hover Cover Height',
                 'type': 'text',
                 'default': '500px',
-                'title': 'The maximum height of a cover when it is hovered over and enlarged'
+                'title': 'The maximum height of a cover image when it is hovered over and enlarged'
             },
 
             'apiKey': {
@@ -1091,7 +1091,7 @@ GM_addStyle(`
 
     }
 
-    ${SETTINGS.customFont == 'EditPanel' ? `
+    ${SETTINGS.customFont == 'Edit Panel' ? `
     #editPanel *:not(.material-symbols) {
         font-family: var(--fonts-roboto);
     }` : '' }
