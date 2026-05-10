@@ -4,7 +4,7 @@
 
 // @name        ABSidekick
 // @author      WirlyWirly
-// @version     0.6
+// @version     0.7
 // @homepage    https://github.com/WirlyWirly/ABSidekick
 // @description Your sidekick for the AudioBookShelf web interface
 //              Written on LibreWolf via Violentmonkey
@@ -14,14 +14,10 @@
 
 // ----------------------------------- Matches --------------------------------------
 
-// If ABSidekick does not run automatically on your URL, edit this line with your actual Audiobookshelf URL and port
+// If ABSidekick does not run automatically, edit this '@match' line so that it has the same IP:PORT that is shown in your browser
 // @match       http://192.168.1.105:80/audiobookshelf/*
 
 // @include     /https?://.+/audiobookshelf/.*/
-
-// ----------------------------------- Dependencies --------------------------------------
-
-// @require     https://cdn.jsdelivr.net/gh/sizzlemctwizzle/GM_config@43fd0fe4de1166f343883511e53546e87840aeaf/gm_config.js
 
 // ----------------------------------- Permissions --------------------------------------
 
@@ -31,6 +27,10 @@
 // @grant       GM_listValues
 // @grant       GM_registerMenuCommand
 // @grant       GM_setValue
+
+// ----------------------------------- Dependencies --------------------------------------
+
+// @require     https://cdn.jsdelivr.net/gh/sizzlemctwizzle/GM_config@43fd0fe4de1166f343883511e53546e87840aeaf/gm_config.js
 
 // ----------------------------------- Script Links --------------------------------------
 
@@ -42,25 +42,27 @@
 
 // =================================== CODE ======================================
 
-// The Audiobookshelf URL, which will be used when making API calls
+// The Audiobookshelf URL that will be used in generating the API url
 let absURL = document.URL.match(/^(.+?\/audiobookshelf)\//)[1]
 
-// Initialize the GM_config settings panel and retriever the master SETTINGS object
+// Initialize the GM_config settings panel and populate the global SETTINGS object
 let SETTINGS = settingsPanel()
 
-editPanelMain()
-appContentMain()
-
 // Create the GM_config settings panel button in the #appbar
-waitForElement('#appbar a[href="/audiobookshelf/config"]', document.body).then(function(element) {
+waitForElement('#appbar a[href="/audiobookshelf/config"]', document.body).then(function(absConfigButton) {
+    // The ABS config button is now available in the #appbar
+
+    // Generate the 🛠️ button
     let settingsShortcut = document.createElement('div')
-    element.insertAdjacentElement('afterend', settingsShortcut)
     settingsShortcut.id = 'gmConfigAppBar'
     settingsShortcut.innerText = '🛠️'
     settingsShortcut.title = 'Open the ABSidekick settings panel'
     settingsShortcut.addEventListener('click', function() {
         GM_config.open()
     })
+
+    // Insert it after the ABS config button
+    absConfigButton.insertAdjacentElement('afterend', settingsShortcut)
 
 })
 
@@ -69,8 +71,11 @@ let hoverCoverElement = document.createElement('div')
 document.body.appendChild(hoverCoverElement)
 hoverCoverElement.outerHTML = `<div id="hoverCoverContainer"><img src="" style="border-radius: 10px; max-height: 100%; max-width: 100%"></div>`
 
+// The functions that will wait for and then initiate injections when there targets are loaded
+appContentMain()
+editPanelMain()
 
-// =================================== FUNCTIONS ======================================
+// =================================== MAINS ======================================
 
 async function appContentMain() {
     // Setup a MutationObserver to monitor the #app-content element for changes, which indicates a new page-type has been loaded and needs to be handled
@@ -78,7 +83,7 @@ async function appContentMain() {
     let appContent = await waitForElement('#app-content', document.body)
 
     // Check if the initial page load was already an itemPage
-    appContent.querySelector('#item-page-wrapper') ? injectItemPage(appContent.querySelector('#item-page-wrapper')) : null
+    appContent.querySelector('#item-page-wrapper') ? itemPageInjector(appContent.querySelector('#item-page-wrapper')) : null
 
     let appContentObserver = new MutationObserver(async function(mutations) {
         // The actions to perform when new mutations are detected to the '#app-content' element
@@ -88,7 +93,7 @@ async function appContentMain() {
         if ( itemPage ) {
             // This is a itemPage (book page)
 
-            injectItemPage(itemPage)
+            itemPageInjector(itemPage)
         }
 
     })
@@ -99,6 +104,7 @@ async function appContentMain() {
     appContentObserver.observe(target, config)
 
 }
+
 
 async function editPanelMain() {
     // Wait for the 'Edit Panel' to be loaded and then proceed with adding functionality
@@ -134,14 +140,18 @@ async function editPanelMain() {
         await waitForElement('#match-wrapper', editPanel)
 
         // Check that this match tab does not have a 'Title' button, which indicates that it needs injections
-        !editPanel.querySelector('#buttonTitle') ? injectMatchTab() : null
+        !editPanel.querySelector('#buttonTitle') ? matchTabInjector() : null
 
     })
 
 
 }
 
-async function injectItemPage(itemPage) {
+
+// =================================== INJECTORS ======================================
+
+
+async function itemPageInjector(itemPage) {
     // Inject the current itemPage with custom elements and setup a MutationObserver to monitor for any new match results
 
     itemPage.classList.add('pageProcessed')
@@ -218,44 +228,6 @@ async function injectItemPage(itemPage) {
 
     }
 
-    // Audible Button
-    let audibleButton = document.createElement('button')
-    audibleButton.innerText = 'Audible'
-    audibleButton.setAttribute('class', 'bg-primary border-gray-600 border rounded-md mx-0.5')
-    audibleButton.classList.add('itemButton')
-    SETTINGS.itemButtonGlass ? audibleButton.classList.add('itemButtonGlass') : null
-    audibleButton.title = 'Open the Audible page of this item\n\nℹ️ Only works if the item has a ASIN value'
-    audibleButton.addEventListener('click', function(event) {
-        // Open the Audible page using the available ASIN
-
-        if ( metadata.media.metadata.asin ) {
-            let asinURL = SETTINGS.audibleTemplate.replace(/%asin%/, metadata.media.metadata.asin)
-            window.open(asinURL, '_blank')
-        } else {
-            this.innerText = 'No ASIN'
-        }
-
-    })
-
-    // Goodreads Button
-    let goodreadsButton = document.createElement('button')
-    goodreadsButton.innerText = 'Goodreads'
-    goodreadsButton.setAttribute('class', 'bg-primary border-gray-600 border rounded-md mx-0.5')
-    goodreadsButton.classList.add('itemButton')
-    SETTINGS.itemButtonGlass ? goodreadsButton.classList.add('itemButtonGlass') : null
-    goodreadsButton.title = 'Search Goodreads for this title'
-    goodreadsButton.addEventListener('click', function(event) {
-        // Open the Audible page using the available ASIN
-
-        let goodreadsURL = SETTINGS.goodreadsTemplate.replace(/%title%/, encodeURI(metadata.media.metadata.title))
-        console.log(goodreadsURL)
-        window.open(goodreadsURL, '_blank')
-
-    })
-
-    itemPage.querySelector('#buttonsRow > div:last-child').insertAdjacentElement('beforebegin', audibleButton)
-    itemPage.querySelector('#buttonsRow > div:last-child').insertAdjacentElement('beforebegin', goodreadsButton)
-
     // Hover Cover
     let hoverElement = document.createElement('div')
     hoverElement.innerText = '👀'
@@ -280,32 +252,86 @@ async function injectItemPage(itemPage) {
     let itemId = document.getElementById('itemCover').src.match(/\/items\/(.+?)\//)[1]
     let metadata = await fetchItemMedata(itemId)
 
-}
+    // The object containing the data used to fill in templates
+    let templateVariables = {
+        title: metadata.media.metadata.title,
+        author: metadata.media.metadata.authors[0].name,
+        year: metadata.media.metadata.publishedYear,
+        asin: metadata.media.metadata.asin,
+    }
+    console.log(metadata)
+    console.log(templateVariables)
 
+    // Goodreads Button
+    let goodreadsButton = document.createElement('button')
+    goodreadsButton.innerText = 'Goodreads'
+    goodreadsButton.setAttribute('class', 'bg-primary border-gray-600 border rounded-md mx-0.5')
+    goodreadsButton.classList.add('itemButton')
+    SETTINGS.itemButtonGlass ? goodreadsButton.classList.add('itemButtonGlass') : null
+    goodreadsButton.title = 'Search Goodreads for this title'
+    goodreadsButton.addEventListener('click', function(event) {
+        // Open the Audible page using the available ASIN
 
-async function fetchItemMedata(itemId) {
-    // Use the provided itemId to GET the metadata from the api
+        let goodreadsURL = SETTINGS.goodreadsTemplate.replace(/%title%/, encodeURI(templateVariables.title))
+        window.open(goodreadsURL, '_blank')
 
-    let response = await fetch(`${absURL}/api/items/${itemId}`, {
-        headers: { 'Authorization': `Bearer ${SETTINGS.apiKey}` }
     })
 
-    let metadata = await response.json()
+    itemPage.querySelector('#buttonsRow > div:last-child').insertAdjacentElement('beforebegin', goodreadsButton)
 
-    return metadata
+    // Audible Button (if this item has a ASIN)
+    if ( templateVariables.asin ) {
+
+        let audibleButton = document.createElement('button')
+        audibleButton.innerText = 'Audible'
+        audibleButton.setAttribute('class', 'bg-primary border-gray-600 border rounded-md mx-0.5')
+        audibleButton.classList.add('itemButton')
+        SETTINGS.itemButtonGlass ? audibleButton.classList.add('itemButtonGlass') : null
+        audibleButton.title = 'Open the Audible page of this item'
+        audibleButton.addEventListener('click', function(event) {
+            // Open the Audible page using the available ASIN
+
+            let asinURL = SETTINGS.audibleTemplate.replace(/%asin%/, metadata.media.metadata.asin)
+            window.open(asinURL, '_blank')
+
+        })
+
+        itemPage.querySelector('#buttonsRow > div:last-child').insertAdjacentElement('beforebegin', audibleButton)
+
+    }
+
+    // Custom Buttons
+    for (let i = 1; i <= SETTINGS.customButtonCount; i++) {
+
+        // This custom button has a label, so generate and insert the button element
+        if ( SETTINGS[`custom_button_label_${i}`] != '' ) {
+
+            let customButton = document.createElement('button')
+            customButton.innerText = SETTINGS[`custom_button_label_${i}`]
+            customButton.setAttribute('class', 'bg-primary border-gray-600 border rounded-md mx-0.5')
+            customButton.classList.add('itemButton')
+            SETTINGS.itemButtonGlass ? customButton.classList.add('itemButtonGlass') : null
+            customButton.title = `🌐 ${SETTINGS[`custom_button_label_${i}`]}\n\n🔗 ${SETTINGS[`custom_button_template_${i}`]}`
+            customButton.addEventListener('click', function(event) {
+
+                let customURL = SETTINGS[`custom_button_template_${i}`].replace(/%title%/, templateVariables.title)
+                templateVariables.author ? customURL = customURL.replace(/%author%/, templateVariables.author) : customURL = customURL.replace(/%author%/, '') 
+                templateVariables.year ? customURL = customURL.replace(/%year%/, templateVariables.year) : customURL = customURL.replace(/%year%/, '') 
+                templateVariables.asin ? customURL = customURL.replace(/%asin%/, templateVariables.asin) : customURL = customURL.replace(/%asin%/, '') 
+
+                window.open(customURL, '_blank')
+
+            })
+
+            itemPage.querySelector('#buttonsRow > div:last-child').insertAdjacentElement('beforebegin', customButton)
+
+        }
+    }
 
 }
 
 
-function setId(baseElement, targetSelector, idValue) {
-    // Check the baseElement for the targetSelector and if it exists set the idValue
-
-    baseElement.querySelector(targetSelector) ? baseElement.querySelector(targetSelector).id = idValue : null
-
-}
-
-
-async function injectMatchTab() {
+async function matchTabInjector() {
     // Inject the MatchTab with custom elements and setup a MutationObserver to monitor for any new match results
 
     let editPanel = document.querySelector('#editPanel')
@@ -347,55 +373,23 @@ async function injectMatchTab() {
     matchTab.querySelector('form > div').appendChild(autoMatchButton)
     autoMatchButton.id = 'buttonAutoMatch'
     autoMatchButton.setAttribute('class', 'abs-btn rounded-md shadow-md relative border border-gray-600 mt-5 ml-1 text-white bg-primary px-8 py-2')
-    autoMatchButton.title = `Toggle AutoMatch\n\nℹ️ Confidence: >=${SETTINGS.autoMatchConfidence}%`
-    SETTINGS.autoMatchEnabled == false ? autoMatchButton.innerText = `AutoMatch` : autoMatchButton.innerText = `🤖 AutoMatch`
-    SETTINGS.autoMatchEnabled == true ? autoMatchButton.style.animation = 'pop .50s linear infinite alternate' : null
+
+    if ( SETTINGS.autoMatchEnabled == false ) {
+        autoMatchButton.innerText = `AutoMatch` 
+        autoMatchButton.title = `Enable AutoMatch\n\nℹ️ Confidence >=${SETTINGS.autoMatchConfidence}%`
+        autoMatchButton.style.animation = '' 
+
+    } else {
+        autoMatchButton.innerText = `🤖 AutoMatch`
+        autoMatchButton.title = `AutoMatch is enabled\n\nClick or press SPACE to cancel\n\nℹ️ Confidence: >= ${SETTINGS.autoMatchConfidence}`
+        autoMatchButton.style.animation = 'pop .50s linear infinite alternate' 
+    }
 
     autoMatchButton.addEventListener('click', function(event) {
-        // The actions to take when the 'AutoMatch' button is clicked
+        
+        // Toggle AutoMatch
+        SETTINGS.autoMatchEnabled == false ? autoMatchStart(matchTab.querySelectorAll('#resultsList div.resultProcessed')) : autoMatchStop()
 
-        if ( SETTINGS.autoMatchEnabled == false ) {
-            // Enable AutoMatch
-
-            SETTINGS.autoMatchEnabled = true
-
-            this.innerText = `🤖 AutoMatch`
-            this.title = ''
-            this.style.animation = 'pop .50s linear infinite alternate'
-
-            if ( !document.getElementById('autoMatchCancel') ) {
-                // The floating AutoMatchCancel button does not exists, so create it
-
-                let autoMatchCancel = document.createElement('button')
-                document.body.appendChild(autoMatchCancel)
-                autoMatchCancel.outerHTML = `<button id="autoMatchCancel" title="AutoMatch is enabled, click to cancel" class="autoMatchCancel bg-primary rounded-md text-white">🤖 AutoMatch</button>`
-                autoMatchCancel = document.getElementById('autoMatchCancel')
-
-                autoMatchCancel.addEventListener('click', function(event) {
-                    SETTINGS.autoMatchEnabled = false
-                    this.remove()
-
-                    document.getElementById('buttonAutoMatch') ? document.getElementById('buttonAutoMatch').innerText = `AutoMatch` : null
-                    document.getElementById('buttonAutoMatch') ? document.getElementById('buttonAutoMatch').style.animation = '' : null
-                    document.getElementById('autoMatchCancel') ? document.getElementById('autoMatchCancel').title = `Toggle AutoMatch, which will save the first match result that has a confidence score >=${SETTINGS.autoMatchConfidence}%` : null
-
-                })
-            }
-
-            autoMatchStart(matchTab.querySelectorAll('#resultsList div.resultProcessed'))
-
-        } else {
-            // Disable Automatch
-
-            SETTINGS.autoMatchEnabled = false
-
-            this.innerText = `AutoMatch`
-            this.title = `Toggle AutoMatch\n\nℹ️ Confidence: >=${SETTINGS.autoMatchConfidence}%`
-            this.style.animation = ''
-
-            document.getElementById('autoMatchCancel') ? document.getElementById('autoMatchCancel').remove() : null
-
-        }
     })
 
     // When the edit panel is manually cycled, clean the match tab of old info
@@ -414,7 +408,7 @@ async function injectMatchTab() {
             for ( let result of newMatchResults ) {
                 // For each match, generate the new elements (buttons|coverDimensions)
 
-                // Add classes\identifiers to the various elements in a match result
+                // Add identifiers to the various elements of intereset in a match result
                 result.classList.add('resultProcessed')
                 result.parentElement.classList.add('resultContainer')
 
@@ -490,8 +484,8 @@ async function injectMatchTab() {
                     event.button == 0 ? audibleLookup(this) : null
                 })
 
-                buttonHolder.appendChild(saveTagButton)
                 buttonHolder.appendChild(saveResultButton)
+                buttonHolder.appendChild(saveTagButton)
                 buttonHolder.appendChild(asinButton)
 
                 result.parentElement.appendChild(buttonHolder)
@@ -515,10 +509,9 @@ async function injectMatchTab() {
                 addBookData(SETTINGS.currentId)
             }
 
-            // AutoMatch, if enabled and this is not the same item as previously saved
+            // Start AutoMatch if enabled and this is not the same item as was previously saved
             if ( SETTINGS.autoMatchEnabled == true && SETTINGS.previousId != SETTINGS.currentId ) {
-                // Check each result and save the first one with that has >= the user specified confidence percentile
-                autoMatchStart(newMatchResults)
+                autoMatchStart(newMatchResults, observer)
             }
 
         } else if ( matchTab.querySelector('#match-wrapper > :nth-child(3)').style.display != 'none' ) {
@@ -552,6 +545,64 @@ async function injectMatchTab() {
     let target = matchTab.querySelector('#resultsList')
     let config = { childList: true , attributeFilter: ['style'] }
     observer.observe(target, config)
+
+}
+
+
+// =================================== HELPERS ======================================
+
+
+function waitForElement(cssTarget, observeTarget = document.body, observeSubTree = true) {
+    // Wait until the cssTarget exists within the observeTarget and then resolve the promise
+    // Source: https://stackoverflow.com/a/61511955
+
+    return new Promise( function(resolve) {
+
+        if ( observeTarget.querySelector(cssTarget) ) {
+            // The cssTarget already exists within the observeTarget, so immediately resolve the promise
+            return resolve(observeTarget.querySelector(cssTarget))
+        }
+
+        const observer = new MutationObserver( mutations => {
+            // The actions to take when there are new mutations to the observeTarget
+
+            if ( observeTarget.querySelector(cssTarget) ) {
+                // The cssTarget has been found within the observeTarget
+                observer.disconnect()
+                resolve(observeTarget.querySelector(cssTarget))
+            }
+        })
+
+        // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
+        try {
+            observer.observe(observeTarget, { childList: true, subtree: observeSubTree })
+        } catch (error) {
+            // console.log(error)
+        }
+
+    })
+
+}
+
+
+function setId(baseElement, targetSelector, idValue) {
+    // Check the baseElement for the targetSelector and if it exists set the idValue
+
+    baseElement.querySelector(targetSelector) ? baseElement.querySelector(targetSelector).id = idValue : null
+
+}
+
+
+async function fetchItemMedata(itemId) {
+    // Use the provided itemId to GET the metadata from the api
+
+    let response = await fetch(`${absURL}/api/items/${itemId}`, {
+        headers: { 'Authorization': `Bearer ${SETTINGS.apiKey}` }
+    })
+
+    let metadata = await response.json()
+
+    return metadata
 
 }
 
@@ -629,16 +680,40 @@ async function titleSearch() {
 }
 
 
-function autoMatchStart(matchResults) {
+function autoMatchStart(matchResults, mutationObserver = false) {
     // Enable and then AutoMatch for a match entry among the provided array
 
+    // AutoMatch has not yet been enabled, so make the changes necessary to cancel it
+    if ( SETTINGS.autoMatchEnabled == false ) {
+        
+        SETTINGS.autoMatchEnabled = true 
+
+        // MatchTab button
+        let autoMatchButton = document.getElementById('buttonAutoMatch')
+        autoMatchButton.innerText = `🤖 AutoMatch`
+        autoMatchButton.title = `AutoMatch is enabled\n\nClick or press SPACE to cancel\n\nℹ️ Confidence: >= ${SETTINGS.autoMatchConfidence}`
+        autoMatchButton.style.animation = 'pop .50s linear infinite alternate'
+
+        // Floating button
+        let autoMatchCancel = document.createElement('button')
+        document.body.appendChild(autoMatchCancel)
+        autoMatchCancel.outerHTML = `<button id="autoMatchCancel" title="AutoMatch is enabled\n\nClick or SPACE to cancel\n\nℹ️ Confidence: >= ${SETTINGS.autoMatchConfidence}" class="autoMatchCancel bg-primary rounded-md text-white">🤖 AutoMatch</button>`
+        autoMatchCancel = document.getElementById('autoMatchCancel')
+        autoMatchCancel.addEventListener('click', function(event) { autoMatchStop() })
+
+        // Global "SPACE" Automatch cancel
+        window.addEventListener('keydown', autoMatchSpaceStop)
+    }
+
+
+    // Check for a AutoMatch among the provided matchResults
     for ( let result of matchResults ) {
 
         // The element containing the confidence percentile
         let confidenceElement = result.querySelector('div.resultConfidence')
 
+        // The confidence element was found
         if ( confidenceElement ) {
-            // The confidence element was found, so determine if it passes the check
 
             let confidenceScore = confidenceElement.innerText.match(/(\d+)%/)[1]
 
@@ -646,13 +721,20 @@ function autoMatchStart(matchResults) {
                 // This match result has met or exceeded the confidence threshold, so prepare to save it
                 result.parentElement.classList.add('autoMatchSelection')
 
+                // Wait the specified number of milliseconds before proceeding
                 setTimeout(() => {
 
                     if ( SETTINGS.autoMatchEnabled == true ) {
-                        // The AutoMatch was not cancelled, so continue with the save
-                        try{ observer.disconnect() } catch(error) {}
-                        let targetButton = SETTINGS.autoMatchTarget == 'Save Match' ? 'saveResult' : 'saveResultTags'
-                        result.parentElement.querySelector(`button.${targetButton}`).click()
+                        // AutoMatch was not disabled\canceled, so continue with the save
+
+                        try{ 
+                            
+                            // Try\Catch, just in case the user left the MatchTab
+                            mutationObserver ? mutationObserver.disconnect() : null
+                            let targetButton = SETTINGS.autoMatchTarget == 'Save Match' ? 'saveResult' : 'saveResultTags'
+                            result.parentElement.querySelector(`button.${targetButton}`).click()
+
+                        } catch(error) {} 
                     }
 
                 }, SETTINGS.autoMatchDelay)
@@ -667,7 +749,44 @@ function autoMatchStart(matchResults) {
 
 }
 
+
+function autoMatchSpaceStop(event) {
+    // The window event to cancel AutoMatch when SPACE is pressed, specified globally so that the event can be added\removed within other functions
+    event.key == ' ' ? autoMatchStop() : null
+
+}
+
+
+function autoMatchStop() {
+    // Stop AutoMatch and revert elements to their default status
+    
+    SETTINGS.autoMatchEnabled = false
+
+    try {
+        
+        // Try\catch, just in case the user left the MatchTab
+        
+        // Floating button
+        document.getElementById('autoMatchCancel') ? document.getElementById('autoMatchCancel').remove() : null
+
+        // Window "Space" eventListener
+        window.removeEventListener('keydown', autoMatchSpaceStop)
+
+        // MatchTab button
+        let autoMatchButton = document.querySelector('#buttonAutoMatch')
+        autoMatchButton.innerText = `AutoMatch`
+        autoMatchButton.title = `Toggle AutoMatch\n\nℹ️ Confidence: >=${SETTINGS.autoMatchConfidence}%`
+        autoMatchButton.style.animation = ''
+
+    } catch(error) {
+        console.log(error)
+    }
+
+}
+
+
 function viewHoverCover(imgURL, clientX, clientY) {
+    // Using the provided arguments, display the hover cover relative to the cursor location
 
     let hoverCoverElement = document.getElementById('hoverCoverContainer')
     hoverCoverElement.querySelector('img').src = imgURL
@@ -690,13 +809,16 @@ function viewHoverCover(imgURL, clientX, clientY) {
 
 // @saveResult
 async function saveResult(matchButton, additionalTags = false) {
-    // The 'Save' button of a bookResult was clicked
+    // A 'Save' button in the MatchTab was clicked
 
     // The floating Edit panel
     let editPanel = document.getElementById('editPanel')
 
     // Click the book item, which will load the new data
     matchButton.closest('div.resultContainer').querySelector('div.resultProcessed').click()
+
+    // If the editPanel or matchButton was not found (because the user navigated away during the AutoMatch delay), then cancel the save
+    if ( !editPanel || !matchButton) { return }
 
     // Wait until the submit button is available, then click it
     let submitButton = await waitForElement('button.bg-success[type="submit"]', editPanel.querySelector('#match-wrapper'))
@@ -764,7 +886,7 @@ async function saveResult(matchButton, additionalTags = false) {
 
 
 async function audibleLookup(asinButton) {
-    // The 'Audible' lookup button was clicked
+    // The 'Audible' lookup button of the MatchTab was clicked
 
     // The floating Edit panel
     let editPanel = document.getElementById('editPanel')
@@ -790,46 +912,49 @@ async function audibleLookup(asinButton) {
 }
 
 
-function waitForElement(cssTarget, observeTarget = document.body, observeSubTree = true) {
-    // Wait until the cssTarget exists within the observeTarget and then resolve the promise
-    // Source: https://stackoverflow.com/a/61511955
-
-    return new Promise( function(resolve) {
-
-        if ( observeTarget.querySelector(cssTarget) ) {
-            // The cssTarget already exists within the observeTarget, so immediately resolve the promise
-            return resolve(observeTarget.querySelector(cssTarget))
-        }
-
-        const observer = new MutationObserver( mutations => {
-            // The actions to take when there are new mutations to the observeTarget
-
-            if ( observeTarget.querySelector(cssTarget) ) {
-                // The cssTarget has been found within the observeTarget
-                observer.disconnect()
-                resolve(observeTarget.querySelector(cssTarget))
-            }
-        })
-
-        // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
-        try {
-            observer.observe(observeTarget, { childList: true, subtree: observeSubTree })
-        } catch (error) {
-            // console.log(error)
-        }
-
-    })
-
-}
-
-
 // =================================== GM_CONFIG ======================================
 
 function settingsPanel() {
+    // Generate and initialize the GM_config settings panel. It has been done in this function for code cleanliness.
+    
+    // Determine the saved number of custom search buttons that should be generated in the settings panel
+    let buttonCount
+    if ( GM_getValue('abSidekick') !== undefined ) {
+        // Parse the existing GM_config() settings object
+        let gmcSettingsObject = JSON.parse(GM_getValue('abSidekick'))
+
+        // Get the previously specified buttonCount to determine how many custom button rows should be generated
+        buttonCount = gmcSettingsObject['customButtonCount']
+
+    }
+
+    // New installs will not have a customButtonCount, so default to 1
+    buttonCount == undefined ? buttonCount = 1 : null
+
+
+    // Generate the appropriate number of custom button fields
+    let gmcButtonFields = {}
+    for (let i = 1; i <= buttonCount; i++) {
+        // --- GM_config() Fields ---
+
+        let currentLoopFields = {
+            [`custom_button_label_${i}`]: {
+                'type': 'text'
+            },
+            [`custom_button_template_${i}`]: {
+                'type': 'text'
+            }
+        }
+
+        gmcButtonFields = {...gmcButtonFields, ...currentLoopFields}
+
+    }
+
+    // The element that will containt the GM_config panel, so that it is not a floating iFrame and can be inspected
     let configFrame = document.createElement('div')
     document.body.appendChild(configFrame)
-    let reloadWindow
 
+    let reloadWindow
     // @GM_config
     GM_config.init({
         'id': 'abSidekick',
@@ -839,7 +964,7 @@ function settingsPanel() {
             <div>★ Hover over emojis for details ★</div>
         `,
 
-        'fields': {
+        'fields': {...{
 
             'autoMatchConfidence': {
                 'label': '🤖 AutoMatch Confidence',
@@ -914,45 +1039,52 @@ function settingsPanel() {
             },
 
             'itemBackgroundBlur': {
-                'label': 'Background Blur',
+                'label': '👓 Background Blur',
                 'type': 'checkbox',
                 'default': true,
                 'title': 'Use the cover image to provide a blurred background affect'
             },
 
             'itemMetaGlass': {
-                'label': 'Meta Glass',
+                'label': '🪟 Meta Glass',
                 'type': 'checkbox',
                 'default': false,
                 'title': 'Apply a black glass effect to the metadata rows'
             },
 
             'itemProgressGlass': {
-                'label': 'Progress Glass',
+                'label': '🪟 Progress Glass',
                 'type': 'checkbox',
                 'default': true,
                 'title': 'Apply a black glass effect to the progress indicator'
             },
 
             'itemButtonGlass': {
-                'label': 'Button Glass',
+                'label': '🪟 Button Glass',
                 'type': 'checkbox',
                 'default': true,
                 'title': 'Apply a black glass effect to the buttons'
             },
 
             'itemSummaryGlass': {
-                'label': 'Summary Glass',
+                'label': '🪟 Summary Glass',
                 'type': 'checkbox',
                 'default': true,
                 'title': 'Apply a black glass effect to the summary text'
             },
 
             'itemDropdownGlass': {
-                'label': 'Dropdown Glass',
+                'label': '🪟 Dropdown Glass',
                 'type': 'checkbox',
                 'default': true,
                 'title': 'Apply a black glass effect to the dropdown tables'
+            },
+
+            'customButtonCount': {
+                'label': '🌐 Custom Buttons',
+                'type': 'int',
+                'default': 2,
+                'title': `The number of custom button rows that will be generated\n\nThe 'Button Name' is what will be displayed in Audiobookshelf, while the 'Search Template' is the URL that will be opened in a new tab\n\nℹ️ Search Template Variables...\n\n%title% %author% %year% %asin%`
             },
 
             'customFontToggle': {
@@ -991,9 +1123,10 @@ function settingsPanel() {
                 'title': "The search template URL that will be used when clicking a 'Goodreads' button\n\nℹ️ The %title% placeholder will be replaced with the actual title of the relevant item"
             },
 
-        },
+        }, ...gmcButtonFields },
         'events': {
             'open': function() {
+                let gmcPanel = document.querySelector('#abSidekick')
                 reloadWindow = false
 
                 // Create Section Headers
@@ -1019,6 +1152,35 @@ function settingsPanel() {
                 // Save Tags placeholder
                 document.getElementById('abSidekick_field_saveTagsList').placeholder = 'ABSidekick, Matched'
 
+                // Make sure the Custom Button fields are in the same row
+                let insertBeforeElement = gmcPanel.querySelector('#abSidekick_customButtonCount_var').nextElementSibling
+                for (let i = 1; i <= buttonCount; i++) {
+
+                    let buttonLabel = gmcPanel.querySelector(`#abSidekick_field_custom_button_label_${i}`)
+                    buttonLabel.classList.add('customButtonLabel')
+
+                    let buttonTemplate = gmcPanel.querySelector(`#abSidekick_field_custom_button_template_${i}`)
+                    buttonTemplate.classList.add('customButtonTemplate')
+
+                    let labelParent = buttonLabel.parentElement
+                    let templateParent = buttonTemplate.parentElement
+
+                    let rowDiv = document.createElement('div')
+                    rowDiv.classList.add('customButtonContainer')
+
+                    insertBeforeElement.insertAdjacentElement('beforebegin', rowDiv)
+
+                    rowDiv.appendChild(buttonLabel)
+                    rowDiv.appendChild(buttonTemplate)
+
+                    labelParent.remove()
+                    templateParent.remove()
+
+                    buttonLabel.placeholder = 'Button Name'
+                    buttonTemplate.placeholder = 'Search Template'
+
+                }
+                
             },
             'save': function () {
                 // Actions to take when the 'Save' button is clicked
@@ -1089,21 +1251,31 @@ function settingsPanel() {
         matchTabHeight: GM_config.get('matchTabHeight'),
         matchTabWidth: GM_config.get('matchTabWidth'),
 
-        // Item Page
+        // Item Pages
         itemBackgroundBlur: GM_config.get('itemBackgroundBlur'),
         itemMetaGlass: GM_config.get('itemMetaGlass'),
         itemProgressGlass: GM_config.get('itemProgressGlass'),
         itemButtonGlass: GM_config.get('itemButtonGlass'),
         itemSummaryGlass: GM_config.get('itemSummaryGlass'),
         itemDropdownGlass: GM_config.get('itemDropdownGlass'),
+        customButtonCount: GM_config.get('customButtonCount'),
 
-        // Global
+
+        // Globals
         navigationDirection: GM_config.get('navigationDirection'),
         customFontToggle: GM_config.get('customFontToggle'),
         saveTagsList: GM_config.get('saveTagsList').split(','),
         apiKey: GM_config.get('apiKey'),
         audibleTemplate: GM_config.get('audibleTemplate'),
         goodreadsTemplate: GM_config.get('goodreadsTemplate'),
+
+    }
+
+    // Custom Buttons
+    for (let i = 1; i <= buttonCount; i++) {
+
+        SETTINGS[`custom_button_label_${i}`] = GM_config.get(`custom_button_label_${i}`)
+        SETTINGS[`custom_button_template_${i}`] = GM_config.get(`custom_button_template_${i}`)
 
     }
 
@@ -1172,14 +1344,14 @@ GM_addStyle(`
     }
 
     #abSidekick div.config_var {
-        margin: 0px 0px 10px 0px;
+        margin: 0px 0px 10px 20px;
     }
 
     #abSidekick label.field_label {
         color: rgba(255, 255, 255, 0.9);
         font-size: 1rem;
         font-weight: 500;
-        margin: 0px 0px 0px 20px;
+        margin: unset;
 
     }
     #abSidekick input[type="text"], #abSidekick input[type="password"], #abSidekick input[type="checkbox"], #abSidekick select {
@@ -1190,27 +1362,51 @@ GM_addStyle(`
         color: #191d2a;
         font-size: .9rem;
         font-weight: 500;
-        margin: 0px 20px 0 0px;
+        margin: unset;
         position: fixed;
-        right: 0px;
+        right: 20px;
         text-align: center;
         transition: all 0.3s ease;
         width: 100px;
-    }
-
-    #abSidekick input[type="checkbox"] {
-        height: 1rem;
-    }
-
-    #abSidekick select {
-        padding: 4px;
     }
 
     #abSidekick #abSidekick_field_saveTagsList,
     #abSidekick #abSidekick_field_apiKey,
     #abSidekick #abSidekick_field_audibleTemplate,
     #abSidekick #abSidekick_field_goodreadsTemplate {
+        /* Long Text Fields */
         width: 155px;
+    }
+
+    #abSidekick input[type="checkbox"] {
+        height: 1rem;
+    }
+
+    div.customButtonContainer {
+        display: grid;
+        grid-template-columns: auto auto;
+        gap: 20px;
+        margin: 0px 0px 10px 0px;
+        padding: 0px 20px 0px 20px;
+
+
+    }
+
+    #abSidekick div.customButtonContainer input[type="text"] {
+        position: unset;
+        margin: unset;
+    }
+
+    #abSidekick input.customButtonLabel {
+        width: 100px;
+    }
+
+    #abSidekick input.customButtonTemplate {
+        width: 215px;
+    }
+
+    #abSidekick select {
+        padding: 4px;
     }
 
     #abSidekick_buttons_holder {
@@ -1253,7 +1449,7 @@ GM_addStyle(`
 `)
 
 
-// =================================== Styling ======================================
+// =================================== CSS Styling ======================================
 
 // Global styling
 GM_addStyle(`
@@ -1329,7 +1525,6 @@ GM_addStyle(`
 `)
 
 // ItemPage styling
-
 GM_addStyle(`
 
     .itemBackground {
@@ -1579,23 +1774,23 @@ GM_addStyle(`
     }
 
     button.saveResult {
-        background-color: #153245;
-        border: #B6D3E7 solid 1px;
-        color: #B6D3E7;
-    }
-
-    button.saveResult:hover {
-        background-color: #224f6d;
-    }
-
-    button.saveResultTags {
         background-color: #113400;
         border: #A0DA83 solid 1px;
         color: #A0DA83;
     }
 
-    button.saveResultTags:hover {
+    button.saveResult:hover {
         background-color: #1d5900;
+    }
+
+    button.saveResultTags {
+        background-color: #153245;
+        border: #B6D3E7 solid 1px;
+        color: #B6D3E7;
+    }
+
+    button.saveResultTags:hover {
+        background-color: #224f6d;
     }
 
     button.asinSearch {
