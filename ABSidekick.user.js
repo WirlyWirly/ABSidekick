@@ -49,12 +49,8 @@ let absURL = document.URL.match(/^(.+?\/audiobookshelf)\//)[1]
 // Initialize the GM_config settings panel and retriever the master SETTINGS object
 let SETTINGS = settingsPanel()
 
-// The <div> element that will be used to display hover covers
-let hoverCoverElement = document.createElement('div')
-document.body.appendChild(hoverCoverElement)
-hoverCoverElement.outerHTML = `<div id="hoverCoverContainer"><img src="" style="border-radius: 10px; max-height: 100%; max-width: 100%"></div>`
-
 editPanelMain()
+itemPageMain()
 
 // Create the GM_config settings panel button in the #appbar
 waitForElement('#appbar a[href="/audiobookshelf/config"]', document.body).then(function(element) {
@@ -69,10 +65,49 @@ waitForElement('#appbar a[href="/audiobookshelf/config"]', document.body).then(f
 
 })
 
+// The <div> element that will be used to display hover covers
+let hoverCoverElement = document.createElement('div')
+document.body.appendChild(hoverCoverElement)
+hoverCoverElement.outerHTML = `<div id="hoverCoverContainer"><img src="" style="border-radius: 10px; max-height: 100%; max-width: 100%"></div>`
+
 
 // =================================== FUNCTIONS ======================================
 
+async function itemPageMain() {
+    // Wait for a 'Item Page' to be loaded and then proceed with adding functionality
+
+    let appContent = await waitForElement('#app-content', document.body)
+
+    let appContentObserver = new MutationObserver(async function(mutations) {
+        // The actions to perform when new mutations are detected to the '#app-content' element
+
+        let addedNodes = []
+        mutations.forEach((record) => { addedNodes.push(record.addedNodes) })
+
+        console.log(addedNodes)
+        for ( let node in addedNodes ) {
+
+            if (node.id == 'item-page-wrapper' ) {
+            // A new item page was loaded,
+            console.log(node)
+
+            // Set identifiers for the important elements
+
+            }
+
+        }
+
+    })
+
+    let target = appContent
+    let config = { childList: true }
+
+    appContentObserver.observe(target, config)
+
+}
+
 async function editPanelMain() {
+    // Wait for the 'Edit Panel' to be loaded and then proceed with adding functionality
 
     // Observer the <body> child elements until the <div> of the edit panel [data-v-779b4e02] is loaded
     let modalOverlay = await waitForElement('body > div.modal[data-v-779b4e02]', document.body, false)
@@ -619,25 +654,32 @@ function settingsPanel() {
         'fields': {
 
             'autoMatchConfidence': {
-                'label': '🤖 Confidence Score',
+                'label': '🤖 AutoMatch Confidence',
                 'type': 'int',
                 'default': '100',
                 'title': 'When AutoMatch is enabled, the first match result with AT-LEAST this confidence score will be the one that is selected and then saved'
             },
 
             'autoMatchDelay': {
-                'label': '🕓 Save Delay',
+                'label': '🕓 AutoMatch Save Delay',
                 'type': 'int',
                 'default': '2500',
                 'title': 'The delay in milliseconds between when AutoMatch selects a match result and when the save button is clicked\n\nℹ️ A longer delay will give you more time to verify the match and intervene if desired'
             },
 
             'autoMatchTarget': {
-                'label': '🎯 Target Button',
+                'label': '🎯 AutoMatch Target',
                 'type': 'select',
                 'options': ['Save Match', 'Save + 🏷️'],
-                'default': 'Save + 🏷️',
+                'default': 'Save Match',
                 'title': 'When AutoMatch has selected a match result to save, this is the button that will be clicked to perform the save'
+            },
+
+            'matchTabColumns': {
+                'label': '🧇 Grid Columns',
+                'type': 'int',
+                'default': '2',
+                'title': 'The number of grid columns that will be used to display the match results'
             },
 
             'currentCoverHeight': {
@@ -654,29 +696,15 @@ function settingsPanel() {
                 'title': 'The maximum height of the cover displayed by each match result'
             },
 
-            'hoverCoverHeight': {
-                'label': '🖼️ Hover Cover Height',
-                'type': 'text',
-                'default': '700px',
-                'title': 'The maximum height of a cover when it is hovered over and enlarged'
-            },
-
-            'matchPanelColumns': {
-                'label': '🧇 Columns',
-                'type': 'int',
-                'default': '2',
-                'title': 'The number of grid columns that will be used to display the match results'
-            },
-
-            'matchPanelWidth': {
-                'label': '↔️ Width',
+            'matchTabWidth': {
+                'label': '↔️ Panel Width',
                 'type': 'text',
                 'default': '1200px',
                 'title': 'The width of the edit panel when the Match tab is active'
             },
 
-            'matchPanelHeight': {
-                'label': '↕️ Height',
+            'matchTabHeight': {
+                'label': '↕️ Panel Height',
                 'type': 'text',
                 'default': '80%',
                 'title': 'The height of the edit panel when the Match tab is active'
@@ -690,6 +718,13 @@ function settingsPanel() {
                 'title': 'The directional button (arrow) that will be clicked after a match result is saved'
             },
 
+            'saveTagsList': {
+                'label': '🏷️ SaveTags List',
+                'type': 'text',
+                'default': '',
+                'title': "A comma seperated list of tags that will be applied to the book when clicking the 'Save + 🏷️' button\n\nℹ️ Setting a unique tag is a simple way to distinguish books that have already been matched, either for simple record keeping or for future scripting"
+            },
+
             'customFont': {
                 'label': '✏️ Roboto Condensed',
                 'type': 'select',
@@ -698,11 +733,11 @@ function settingsPanel() {
                 'title': 'Set Roboto Condensed as the default font'
             },
 
-            'saveTagsList': {
-                'label': '🏷️ SaveTags List',
+            'hoverCoverHeight': {
+                'label': '🖼️ Hover Cover Height',
                 'type': 'text',
-                'default': '',
-                'title': "A comma seperated list of tags that will be applied to the book when clicking the 'Save + 🏷️' button\n\nℹ️ Setting a unique tag is a simple way to distinguish books that have already been matched, either for simple record keeping or for future scripting"
+                'default': '500px',
+                'title': 'The maximum height of a cover when it is hovered over and enlarged'
             },
 
             'apiKey': {
@@ -716,7 +751,7 @@ function settingsPanel() {
                 'label': '🔎 Audible Template',
                 'type': 'text',
                 'default': 'https://www.audible.com/pd/%asin%',
-                'title': "The search template URL that will be used when clicking the 'Audible' button\n\nℹ️ The %asin% placeholder will be replaced with the actual ASIN of the match result"
+                'title': "The search template URL that will be used when clicking a 'Audible' button\n\nℹ️ The %asin% placeholder will be replaced with the actual ASIN of the match result"
             },
 
         },
@@ -732,10 +767,8 @@ function settingsPanel() {
                     beforeElement.insertAdjacentElement('beforebegin', element)
                 }
 
-                settingsHeader('AutoMatch', document.querySelector('#abSidekick_autoMatchConfidence_var'))
-                settingsHeader('Cover Images', document.querySelector('#abSidekick_currentCoverHeight_var'))
-                settingsHeader('Match Panel', document.querySelector('#abSidekick_matchPanelColumns_var'))
-                settingsHeader('Other', document.querySelector('#abSidekick_navigationDirection_var'))
+                settingsHeader('Match Tab', document.querySelector('#abSidekick_autoMatchConfidence_var'))
+                settingsHeader('Global', document.querySelector('#abSidekick_customFont_var'))
 
                 // Obfuscate apiKey input
                 let apiKeyElement = document.getElementById('abSidekick_field_apiKey')
@@ -812,9 +845,9 @@ function settingsPanel() {
         matchCoverHeight: GM_config.get('matchCoverHeight'),
         hoverCoverHeight: GM_config.get('hoverCoverHeight'),
 
-        matchPanelColumns: GM_config.get('matchPanelColumns'),
-        matchPanelHeight: GM_config.get('matchPanelHeight'),
-        matchPanelWidth: GM_config.get('matchPanelWidth'),
+        matchTabColumns: GM_config.get('matchTabColumns'),
+        matchTabHeight: GM_config.get('matchTabHeight'),
+        matchTabWidth: GM_config.get('matchTabWidth'),
 
         navigationDirection: GM_config.get('navigationDirection'),
         customFont: GM_config.get('customFont'),
@@ -1048,8 +1081,8 @@ GM_addStyle(`
 
     #editPanel:has(#match-wrapper) {
         /* edit panel size */
-        height: ${SETTINGS.matchPanelHeight} !important;
-        width: ${SETTINGS.matchPanelWidth} !important;
+        height: ${SETTINGS.matchTabHeight} !important;
+        width: ${SETTINGS.matchTabWidth} !important;
     }
 
     #editPanel #matchTab {
@@ -1110,7 +1143,7 @@ GM_addStyle(`
     div.matchListWrapper {
         /* MatchTab grid view */
         display: grid;
-        grid-template-columns: repeat(${SETTINGS.matchPanelColumns}, auto);
+        grid-template-columns: repeat(${SETTINGS.matchTabColumns}, auto);
         height: unset;
         max-height: calc(100% - 80px);
         scrollbar-color: #7a7a7a #0000;
