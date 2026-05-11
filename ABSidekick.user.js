@@ -1,21 +1,18 @@
 // ==UserScript==
 
-// ----------------------------------- MetaData --------------------------------------
+// ----------------------------------- Metadata --------------------------------------
 
 // @name        ABSidekick
 // @author      WirlyWirly
 // @version     0.7
 // @homepage    https://github.com/WirlyWirly/ABSidekick
-// @description Your sidekick for the AudioBookShelf web interface
-//              Written on LibreWolf via Violentmonkey
-//
-// @namespace   UserScript
-// @run-at      document-end
+// @description A sidekick for the AudioBookShelf web interface
+//              Written on 🐺 LibreWolf via 🐵 Violentmonkey
 
 // ----------------------------------- Matches --------------------------------------
 
-// If ABSidekick does not run automatically, edit this '@match' line so that it has the same IP:PORT that is shown in your browser
-// @match       http://192.168.1.105:80/audiobookshelf/*
+// If ABSidekick does not run automatically, edit this '@match' line so that it has the same Audiobookshelf IP:PORT as used in the browser
+// @match       http://localhost:13378/audiobookshelf/*
 
 // @include     /https?://.+/audiobookshelf/.*/
 
@@ -27,6 +24,12 @@
 // @grant       GM_listValues
 // @grant       GM_registerMenuCommand
 // @grant       GM_setValue
+
+// ----------------------------------- Other --------------------------------------
+
+// @namespace   WirlyScripts
+// @run-at      document-end
+// @supportURL  https://github.com/WirlyWirly/ABSidekick/discussions
 
 // ----------------------------------- Dependencies --------------------------------------
 
@@ -42,11 +45,11 @@
 
 // =================================== CODE ======================================
 
-// The Audiobookshelf URL that will be used in generating the API url
+// The current domain, which will be used when generating Audiobookshelf urls
 let absURL = document.URL.match(/^(.+?\/audiobookshelf)\//)[1]
 
 // Initialize the GM_config settings panel and populate the global SETTINGS object
-let SETTINGS = settingsPanel()
+let SETTINGS = gmcSettingsPanel()
 
 // Create the GM_config settings panel button in the #appbar
 waitForElement('#appbar a[href="/audiobookshelf/config"]', document.body).then(function(absConfigButton) {
@@ -71,9 +74,9 @@ let hoverCoverElement = document.createElement('div')
 document.body.appendChild(hoverCoverElement)
 hoverCoverElement.outerHTML = `<div id="hoverCoverContainer"><img src="" style="border-radius: 10px; max-height: 100%; max-width: 100%"></div>`
 
-// The functions that will wait for and then initiate injections when there targets are loaded
-appContentMain()
-editPanelMain()
+// The functions that will monitor main elements and then initiate injections when the desired target is ready
+appContentMain() // ItemPage
+editPanelMain() // MatchTab
 
 // =================================== MAINS ======================================
 
@@ -112,10 +115,10 @@ async function editPanelMain() {
     // Observer the <body> child elements until the <div> of the edit panel [data-v-779b4e02] is loaded
     let modalOverlay = await waitForElement('body > div.modal[data-v-779b4e02]', document.body, false)
 
-    // Verify this modalOverlay contains the Edit Panel by checking that is has the 6 <button> elements that are used to change tabs
+    // Verify that this is the correct modalOverlay by querying for the 6 <button> elements that are used as the tabs in the Edit Panel
     let editPanel = await waitForElement('div.relative:has(div[role="tablist"] > button:last-child:nth-child(6))', modalOverlay)
 
-    // Set identifiers for the edit panel and important elements
+    // Set identifiers for the edit panel and elements of interest
     modalOverlay.id = 'modalOverlay'
     modalOverlay.querySelector('div > h1').id = 'bookTitle'
 
@@ -143,7 +146,6 @@ async function editPanelMain() {
         !editPanel.querySelector('#buttonTitle') ? matchTabInjector() : null
 
     })
-
 
 }
 
@@ -315,9 +317,9 @@ async function itemPageInjector(itemPage) {
             customButton.addEventListener('click', function(event) {
 
                 let customURL = SETTINGS[`custom_button_template_${i}`].replace(/%title%/, templateVariables.title)
-                templateVariables.author ? customURL = customURL.replace(/%author%/, templateVariables.author) : customURL = customURL.replace(/%author%/, '') 
-                templateVariables.year ? customURL = customURL.replace(/%year%/, templateVariables.year) : customURL = customURL.replace(/%year%/, '') 
-                templateVariables.asin ? customURL = customURL.replace(/%asin%/, templateVariables.asin) : customURL = customURL.replace(/%asin%/, '') 
+                templateVariables.author ? customURL = customURL.replace(/%author%/, templateVariables.author) : customURL = customURL.replace(/%author%/, '')
+                templateVariables.year ? customURL = customURL.replace(/%year%/, templateVariables.year) : customURL = customURL.replace(/%year%/, '')
+                templateVariables.asin ? customURL = customURL.replace(/%asin%/, templateVariables.asin) : customURL = customURL.replace(/%asin%/, '')
 
                 window.open(customURL, '_blank')
 
@@ -375,18 +377,18 @@ async function matchTabInjector() {
     autoMatchButton.setAttribute('class', 'abs-btn rounded-md shadow-md relative border border-gray-600 mt-5 ml-1 text-white bg-primary px-8 py-2')
 
     if ( SETTINGS.autoMatchEnabled == false ) {
-        autoMatchButton.innerText = `AutoMatch` 
+        autoMatchButton.innerText = `AutoMatch`
         autoMatchButton.title = `Enable AutoMatch\n\nℹ️ Confidence >=${SETTINGS.autoMatchConfidence}%`
-        autoMatchButton.style.animation = '' 
+        autoMatchButton.style.animation = ''
 
     } else {
         autoMatchButton.innerText = `🤖 AutoMatch`
         autoMatchButton.title = `AutoMatch is enabled\n\nClick or press SPACE to cancel\n\nℹ️ Confidence: >= ${SETTINGS.autoMatchConfidence}`
-        autoMatchButton.style.animation = 'pop .50s linear infinite alternate' 
+        autoMatchButton.style.animation = 'pop .50s linear infinite alternate'
     }
 
     autoMatchButton.addEventListener('click', function(event) {
-        
+
         // Toggle AutoMatch
         SETTINGS.autoMatchEnabled == false ? autoMatchStart(matchTab.querySelectorAll('#resultsList div.resultProcessed')) : autoMatchStop()
 
@@ -685,8 +687,8 @@ function autoMatchStart(matchResults, mutationObserver = false) {
 
     // AutoMatch has not yet been enabled, so make the changes necessary to cancel it
     if ( SETTINGS.autoMatchEnabled == false ) {
-        
-        SETTINGS.autoMatchEnabled = true 
+
+        SETTINGS.autoMatchEnabled = true
 
         // MatchTab button
         let autoMatchButton = document.getElementById('buttonAutoMatch')
@@ -727,14 +729,14 @@ function autoMatchStart(matchResults, mutationObserver = false) {
                     if ( SETTINGS.autoMatchEnabled == true ) {
                         // AutoMatch was not disabled\canceled, so continue with the save
 
-                        try{ 
-                            
+                        try{
+
                             // Try\Catch, just in case the user left the MatchTab
                             mutationObserver ? mutationObserver.disconnect() : null
                             let targetButton = SETTINGS.autoMatchTarget == 'Save Match' ? 'saveResult' : 'saveResultTags'
                             result.parentElement.querySelector(`button.${targetButton}`).click()
 
-                        } catch(error) {} 
+                        } catch(error) {}
                     }
 
                 }, SETTINGS.autoMatchDelay)
@@ -759,13 +761,13 @@ function autoMatchSpaceStop(event) {
 
 function autoMatchStop() {
     // Stop AutoMatch and revert elements to their default status
-    
+
     SETTINGS.autoMatchEnabled = false
 
     try {
-        
+
         // Try\catch, just in case the user left the MatchTab
-        
+
         // Floating button
         document.getElementById('autoMatchCancel') ? document.getElementById('autoMatchCancel').remove() : null
 
@@ -914,9 +916,9 @@ async function audibleLookup(asinButton) {
 
 // =================================== GM_CONFIG ======================================
 
-function settingsPanel() {
+function gmcSettingsPanel() {
     // Generate and initialize the GM_config settings panel. It has been done in this function for code cleanliness.
-    
+
     // Determine the saved number of custom search buttons that should be generated in the settings panel
     let buttonCount
     if ( GM_getValue('abSidekick') !== undefined ) {
@@ -970,7 +972,7 @@ function settingsPanel() {
                 'label': '🤖 AutoMatch Confidence',
                 'type': 'int',
                 'default': '100',
-                'title': 'When AutoMatch is enabled, the first match result with AT-LEAST this confidence score will be the one that is selected and then saved'
+                'title': "When AutoMatch is enabled, the first match result with AT-LEAST this confidence score will be the one that is selected and then saved\n\nℹ️ Click the '🤖 AutoMatch' button or press <SPACE> to stop AutoMatch"
             },
 
             'autoMatchDelay': {
@@ -1180,7 +1182,7 @@ function settingsPanel() {
                     buttonTemplate.placeholder = 'Search Template'
 
                 }
-                
+
             },
             'save': function () {
                 // Actions to take when the 'Save' button is clicked
