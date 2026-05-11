@@ -1597,6 +1597,7 @@ GM_addStyle(`
         /* edit panel size */
         height: ${SETTINGS.matchTabHeight} !important;
         width: ${SETTINGS.matchTabWidth} !important;
+        min-width: unset !important;
     }
 
     #editPanel #matchTab {
