@@ -1301,7 +1301,7 @@ GM_addStyle(`
         box-shadow: 0px 0px 15px #2C3E50 !important;
         color: #ffffff !important;
         height: auto !important;
-        inset: 15px 30px auto auto !important;
+        inset: .5vw .5vw auto auto !important;
         line-height: 22px !important;
         margin: 0 !important;
         overflow: auto scroll !important;
