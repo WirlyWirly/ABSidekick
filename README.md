@@ -12,7 +12,7 @@ The **ABSidekick Settings Panel** can be accessed by clicking the  `🛠️` emo
   <img src=".github/assets/preview.png" alt="absidekick" width="75%" />
 </div><br>
 
-A suite of additional features to dramatically speed up your matching and allow for a more automated approach
+A suite of new features to dramatically speed up your matching by allowing for a more automated approach
 
 * `🤖 AutoMatch` button: Automatically select and save the first match that has *at-least* a specific confidence score, then cycle to the next book in the list and do it again! This allows you to automate the repetative matching process, while at the same time giving you a chance to stop it if the selected match doesn't look right.
 * `Save Match` button: Save the selected match result (like clicking the `Submit` button) and then cycle to the next book in the list
@@ -30,7 +30,7 @@ A suite of additional features to dramatically speed up your matching and allow 
   <img src=".github/assets/preview2.png" alt="absidekick" width="75%" />
 </div><br>
 
-A suite of customizations that add a little pop to item (book) pages
+A suite of customizations that add a little color and some new features to an item page
 
 * `Audible` button: Using the *ASIN* of the item, open its *Audible* page in a new tab
 * `Goodreads` button: Using the *Title* of the item, perform a *Goodreads* search in a new tab
