@@ -1085,7 +1085,7 @@ function gmcSettingsPanel() {
             'customButtonCount': {
                 'label': '🌐 Custom Buttons',
                 'type': 'int',
-                'default': 2,
+                'default': 1,
                 'title': `The number of custom button rows that will be generated\n\nThe 'Button Name' is what will be displayed in Audiobookshelf, while the 'Search Template' is the URL that will be opened in a new tab\n\nℹ️ Search Template Variables...\n\n%title% %author% %year% %asin%`
             },
 
