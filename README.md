@@ -14,7 +14,7 @@ The **ABSidekick Settings Panel** can be accessed by clicking the  `🛠️` emo
 
 A suite of additional features to dramatically speed up your matching and allow for a more automated approach
 
-* `🤖 AutoMatch` button: Automatically select and save the first match that has *at-least* a specific confidence score, then cycle to the next book in the list and do it again! This allows you to automate the repetative matching process, while at the same time allowing you to stop it if something doesn't look right.
+* `🤖 AutoMatch` button: Automatically select and save the first match that has *at-least* a specific confidence score, then cycle to the next book in the list and do it again! This allows you to automate the repetative matching process, while at the same time giving you a chance to stop it if the selected match doesn't look right.
 * `Save Match` button: Save the selected match result (like clicking the `Submit` button) and then cycle to the next book in the list
 * `Save + Tag` button: Save the selected match result (like clicking the `Submit` button), add custom tag(s), and then cycle to the next book in the list
 * `Audible` button: Using the *ASIN* of the match result, open a new tab to its *Audible* page
