@@ -1,29 +1,35 @@
 # 🌱 ABSidekick
-<div align="center">
-  <img src=".github/assets/preview.png" alt="absidekick" width="100%" />
-  <img src=".github/assets/preview2.png" alt="absidekick" width="100%" />
-</div><br>
 
 This [UserScript](https://openuserjs.org/about/Userscript-Beginners-HOWTO) will add new features directly into the [AudioBookshelf](https://www.audiobookshelf.org/) web interface.
 
-Adding new features through a **UserScript** means that anyone can have simple and immediate access to this custom functionality, without having to perform any server-side changes.
+Adding features through a **UserScript** allows *anyone* to have have simple and immediate access to these new features, without having to perform *any* server-side changes or wait for them to be implemented by the Audiobookshelf team.
 
-The **ABSidekick Settings Panel**, which can be accessed by clicking the  `🛠️` emoji in the Audiobookshelf AppBar, has various customizations that can be edited. There are aesthetic features, but the main focus is in useful functionalities.
+The **ABSidekick Settings Panel** can be accessed by clicking the  `🛠️` emoji in the Audiobookshelf app bar.
 
 ## Match Tab
+
+<div align="center">
+  <img src=".github/assets/preview.png" alt="absidekick" width="75%" />
+</div><br>
+
 A suite of additional features to dramatically speed up your matching and allow for a more automated approach
 
+* `🤖 AutoMatch` button: Automatically select and save the first match that has *at-least* a specific confidence score, then cycle to the next book in the list and do it again! This allows you to automate the repetative matching process, while at the same time allowing you to stop it if something doesn't look right.
 * `Save Match` button: Save the selected match result (like clicking the `Submit` button) and then cycle to the next book in the list
 * `Save + Tag` button: Save the selected match result (like clicking the `Submit` button), add custom tag(s), and then cycle to the next book in the list
 * `Audible` button: Using the *ASIN* of the match result, open a new tab to its *Audible* page
 * `Title` button: Quickly fill the search field with the current title of the book, useful when the auto-populated *ASIN* search returns *No Results*
-* `AutoMatch` button: Automatically select and save the first match that has a minimum confidence percentile, which can be specified in the settings panel
-* **Grid View**: The match results will be displayed in a grid view, allowing you to see more of them at once
 * **Current Cover**: The current cover of the book will be displayed above the match results, which serves as a visual reference to help you in quickly selecting the correct match result
+* * **Grid View**: Display the match results in a grid view, which allows you to see more of them at once and makes better use of screen space.
 * **Hover Covers**: Hover your mouse over cover images to quickly enlarge them for detailed viewing
-* Auto `Title` fill: If the initial *ASIN* search returns *No Results*, the title will be automatically populated into the search field, the same as when clicking the `Title` button.
+* **Auto `Title` fill**: If the initial *ASIN* search returns *No Results*, the title will be automatically populated into the search field, the same as when clicking the `Title` button.
 
 ## Item Pages
+
+<div align="center">
+  <img src=".github/assets/preview2.png" alt="absidekick" width="75%" />
+</div><br>
+
 A suite of customizations that add a little pop to item (book) pages
 
 * `Audible` button: Using the *ASIN* of the item, open its *Audible* page in a new tab
