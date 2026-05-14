@@ -1813,7 +1813,7 @@ GM_addStyle(`
     }
 
     .itemMetaRows {
-        padding: 1px 0px 15px 20px;
+        padding: 1px 20px 15px 20px;
     }
 
     .itemProgress {
