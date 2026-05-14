@@ -20,7 +20,7 @@ A suite of new features to dramatically speed up your matching by allowing for a
 * `Audible` button: Using the *ASIN* of the match result, open a new tab to its *Audible* page
 * `Title` button: Quickly fill the search field with the current title of the book, useful when the auto-populated *ASIN* search returns *No Results*
 * **Current Cover**: The current cover of the book will be displayed above the match results, which serves as a visual reference to help you in quickly selecting the correct match result
-* * **Grid View**: Display the match results in a grid view, which allows you to see more of them at once and makes better use of screen space.
+* **Grid View**: Display the match results in a grid view, which allows you to see more of them at once and makes better use of screen space.
 * **Hover Covers**: Hover your mouse over cover images to quickly enlarge them for detailed viewing
 * **Auto `Title` fill**: If the initial *ASIN* search returns *No Results*, the title will be automatically populated into the search field, the same as when clicking the `Title` button.
 
