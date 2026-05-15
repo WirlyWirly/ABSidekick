@@ -4,7 +4,7 @@
 
 // @name        ABSidekick
 // @author      WirlyWirly
-// @version     0.8
+// @version     0.85
 // @homepage    https://github.com/WirlyWirly/ABSidekick
 // @description A sidekick for the AudioBookShelf web interface
 //              Written on 🐺 LibreWolf via 🐵 Violentmonkey
@@ -412,7 +412,7 @@ async function matchTabInjector() {
         } else {
 
             if ( matchTab.querySelector('img.currentCover') ) {
-                // There is a current cover, so use it to set the notFound tag
+                // There is a current cover, so parse from it the absId then set the notFound tag
 
                 let absId = matchTab.querySelector('img.currentCover').src.match('\/api\/items\/(.+)\/cover')[1]
 
@@ -459,7 +459,7 @@ async function matchTabInjector() {
     titleSearchButton.setAttribute('class', 'abs-btn rounded-md shadow-md relative border border-gray-600 mt-5 ml-1 text-white bg-primary px-8 py-2')
     titleSearchButton.title = 'Fill the search field with the current title'
     matchTab.querySelector('form > div').appendChild(titleSearchButton)
-    titleSearchButton.addEventListener('mouseup', function(event) {
+    titleSearchButton.addEventListener('click', function(event) {
         // The actions to take when the 'Title' button is clicked
         titleSearch()
     })
@@ -602,12 +602,8 @@ async function matchTabInjector() {
             backArrowElement.click()
 
             // There is not a current cover image, so create one
-            if ( !matchTab.querySelector('img.currentCover' && newMatchResults.length > 0 ) ) {
+            if ( !matchTab.querySelector('img.currentCover') ) {
                 addBookData(SETTINGS.currentId)
-
-                // for ( let matchButton of matchTab.querySelectorAll('button.resultButton' ) ) {
-                //     matchButton.setAttribute('data-abs-id', SETTINGS.currentId)
-                // }
             }
 
             // Start AutoMatch if enabled and this is not the same item as was previously saved
@@ -632,8 +628,8 @@ async function matchTabInjector() {
                 // The title was not used to perform the search, so prepare a title search
                 titleSearch()
 
+                // There is a currentId available and there is not already a current cover
                 if ( SETTINGS.currentId && !matchTab.querySelector('img.currentCover') ) {
-                    // There is a currentId available and there is not already a current cover
                     addBookData(SETTINGS.currentId)
                 }
             }
@@ -758,24 +754,25 @@ function cleanMatchTab() {
 
 
 async function titleSearch() {
-    // The 'Title' search button of the match tab was clicked or there were no results during the search
+    // The 'Title' search button of the match tab was clicked or the initial search returned no results
 
     // The <h1> element at the top of the screen, which displays the title of the current book
     let bookTitle = document.getElementById('bookTitle').innerText
 
-    // Update the search field of the Match tab and click the search button
+    // Update the search field of the Match tab and simulate an 'input' event
     let matchTab = document.getElementById('match-wrapper')
     let titleField = matchTab.querySelector('#inputTitle')
     titleField.value = bookTitle
+    titleField.dispatchEvent(new KeyboardEvent('input'))
 
-    // Update the Search field label
-    matchTab.querySelector('#labelInputTitle').innerText = '📖 No Results? Try a title search! Just add a space then hit Search!'
+    // Update the Search field label to indicate this was a title search
+    matchTab.querySelector('#labelInputTitle').innerText = '📖 Title Search!'
     matchTab.querySelector('#labelInputTitle').classList.add('titleSearchReady')
 
     // Add a class to indicate that a title search has already been readied
     matchTab.querySelector('#resultsList').classList.add('titleSearchReady')
 
-    // -- NOT WORKING --
+    // Click the search button
     matchTab.querySelector('#buttonSearch').click()
 
 }
