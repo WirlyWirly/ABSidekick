@@ -38,7 +38,31 @@ A suite of customizations that add a little color and some new features to an it
 * **Background Blur**: Add some color to the page by applying a colorful blur effect based on the cover image
 * **Black Glass**: Give the various floating items a black glass effect
 * **Hover Cover**: Hover your mouse over the cover image to quickly enlarge it for detailed viewing
-  
+
+## ABSidekickRenamer
+Audiobookshelf does **not** have the ability to directly rename\organize folders, so if you would like to organize your actual folders with the newly matched metadata, it must be done server-side.
+
+Therefore, included in this repo is the file `ABSidekickRenamer.py`, which is a small python script that will allow you to quickly rename\organize your items based on the contents of their `metadata.json` file
+
+> ℹ️ In your Audiobookshelf settings, make sure to enable the option `Store metadata with item`
+
+For the full usage of `ABSidekickRenamer.py`, pass the `--help` flag.
+
+> **Basic**
+> 
+> The `-d` flag performs a `dry-run`, which will allow you to view the results without actually making any changes.
+>```bash
+>$ python './ABSidekickRenamer.py' -d --output '/path/to/output/folder' '/path/to/audiobookshelf/library/folder'
+>```
+
+
+> **Recommended**
+> 
+> This will rename **only** the books that have the tag `tagName` and the output folders will have a customized format.
+>```bash
+>$ python './ABSidekickRenamer.py' --tag 'tagName' --format '%author%/%title% [ASIN-%asin%]/' --output '/path/to/output/folder' '/path/to/audiobookshelf/library/folder'
+>```
+
 ## Install
 ABSidekick is a **UserScript**, so will require that you have a **UserScript Manager** addon for your browser
 
@@ -77,3 +101,4 @@ Once you have installed a *UserScript Manager* addon to your browser, simply cli
 > **Source: [GitHub](https://github.com/WirlyWirly/ABSidekick)**<br>
 > **Install: [🌱 ABSidekick](https://raw.githubusercontent.com/WirlyWirly/ABSidekick/main/ABSidekick.user.js?raw=true)**<br>
 > Written on [🐺 LibreWolf](https://librewolf.net/) via [🐵 Violentmonkey](https://violentmonkey.github.io/)
+
