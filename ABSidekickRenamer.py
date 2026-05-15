@@ -15,10 +15,10 @@ import sys
 from pathlib import Path
 
 # The arguments parser
-parser = argparse.ArgumentParser(prog='python ABSidekick.py', formatter_class=argparse.RawTextHelpFormatter, description="Organize Audiobookshelf matches using the 'metadata.json' of each item")
+parser = argparse.ArgumentParser(prog='python ABSidekick.py', formatter_class=argparse.RawTextHelpFormatter, description="Organize Audiobookshelf items using the contents of their 'metadata.json' file")
 parser.add_argument('-c', '--copy', action="store_true", help='Copy the item folder instead of renaming (moving) it')
 parser.add_argument('-d', '--dry', action="store_true", help='Perform a dry-run, not making any actual changes')
-parser.add_argument('-f', '--format', metavar="'String Format'", help='Specify a format for the output folders\n\n%%asin%% %%author%% %%isbn%% %%language%% %%narrator%% %%publisher%% %%title%% %%year%%\n\n')
+parser.add_argument('-f', '--format', metavar="'String Format'", help='Specify a format for the output folders\n\nAvailable Placeholders\n%%asin%% %%author%% %%isbn%% %%language%% %%narrator%% %%publisher%% %%title%% %%year%%\n\n')
 parser.add_argument('-o', '--output', dest='output', metavar='PATH', required=True, help='The output path of the process')
 parser.add_argument('-t', '--tag', metavar='TagName', help='Process only the items that include this tag')
 parser.add_argument('-v', '--version', action='version', version=f"Version {__version__}")
