@@ -40,13 +40,13 @@ A suite of customizations that add a little color and some new features to an it
 * **Hover Cover**: Hover your mouse over the cover image to quickly enlarge it for detailed viewing
 
 ## ABSidekickRenamer
-Audiobookshelf does **not** have the ability to directly rename\organize folders, so if you would like to organize your actual folders with the newly matched metadata, it must be done server-side.
+Audiobookshelf does **not** have the ability to directly rename\organize folders, so if you would like to organize your actual folders with the newly matched metadata, it must be done server-side using other means.
 
-Therefore, included in this repo is the file `ABSidekickRenamer.py`, which is a small python script that will allow you to quickly rename\organize your items based on the contents of their `metadata.json` file
+Therefore, included in this repo is the file `ABSidekickRenamer.py`, which is a small python script that will allow you to quickly rename\organize your items based on the contents of their `metadata.json` file.
 
 > ℹ️ In your Audiobookshelf settings, make sure to enable the option `Store metadata with item`
 
-For the full usage of `ABSidekickRenamer.py`, pass the `--help` flag.
+For the full usage of `ABSidekickRenamer.py`, pass the `--help` flag, but here are some examples...
 
 > **Basic**
 > 
