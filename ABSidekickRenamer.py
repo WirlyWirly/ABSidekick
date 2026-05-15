@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 # The arguments parser
-parser = argparse.ArgumentParser(prog='python ABSidekick.py', formatter_class=argparse.RawTextHelpFormatter, description="Organize Audiobookshelf items using the contents of their 'metadata.json' file")
+parser = argparse.ArgumentParser(prog='python ABSidekick.py', formatter_class=argparse.RawTextHelpFormatter, description="Organize Audiobookshelf items based on the contents of their 'metadata.json' file")
 parser.add_argument('-c', '--copy', action="store_true", help='Copy the item folder instead of renaming (moving) it')
 parser.add_argument('-d', '--dry', action="store_true", help='Perform a dry-run, not making any actual changes')
 parser.add_argument('-f', '--format', metavar="'String Format'", help='Specify a format for the output folders\n\nAvailable Placeholders\n%%asin%% %%author%% %%isbn%% %%language%% %%narrator%% %%publisher%% %%title%% %%year%%\n\n')
