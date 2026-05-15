@@ -2,7 +2,7 @@
 
 This [UserScript](https://openuserjs.org/about/Userscript-Beginners-HOWTO) will add new features directly into the [AudioBookshelf](https://www.audiobookshelf.org/) web interface.
 
-Adding features through a **UserScript** allows *anyone* to have have simple and immediate access to these new features, without having to perform *any* server-side changes or wait for them to be implemented by the Audiobookshelf team.
+Adding features through a **UserScript** allows *anyone* to have simple and immediate access to these new features, without having to perform *any* server-side changes or wait for them to be implemented by the Audiobookshelf team.
 
 The **ABSidekick Settings Panel** can be accessed by clicking the  `🛠️` emoji in the Audiobookshelf app bar.
 
