@@ -15,14 +15,15 @@ The **ABSidekick Settings Panel** can be accessed by clicking the  `🛠️` emo
 A suite of new features to dramatically speed up your matching by allowing for a more automated approach
 
 * `🤖 AutoMatch` button: Automatically select and save the first match that has *at-least* a specific confidence score, then cycle to the next book in the list and do it again! This allows you to automate the repetative matching process, while at the same time giving you a chance to stop it if the selected match doesn't look right.
+* `🏷️ No Match` button: Quickly add custom tag(s) to the book and then cycle to the next book in the list, which is a useful way to easily distinguish books that do not have a proper match
+* `Title` button: Quickly perfrom a search using the title of the book, useful for when the initial *ASIN* search returns *No Results*
 * `Save Match` button: Save the selected match result (like clicking the `Submit` button) and then cycle to the next book in the list
-* `Save + Tag` button: Save the selected match result (like clicking the `Submit` button), add custom tag(s), and then cycle to the next book in the list
+* `Save + 🏷️` button: Save the selected match result (like clicking the `Submit` button), add custom tag(s), and then cycle to the next book in the list
 * `Audible` button: Using the *ASIN* of the match result, open a new tab to its *Audible* page
-* `Title` button: Quickly fill the search field with the current title of the book, useful when the auto-populated *ASIN* search returns *No Results*
 * **Current Cover**: The current cover of the book will be displayed above the match results, which serves as a visual reference to help you in quickly selecting the correct match result
 * **Grid View**: Display the match results in a grid view, which allows you to see more of them at once and makes better use of screen space.
 * **Hover Covers**: Hover your mouse over cover images to quickly enlarge them for detailed viewing
-* **Auto `Title` fill**: If the initial *ASIN* search returns *No Results*, the title will be automatically populated into the search field, the same as when clicking the `Title` button.
+* **Auto `Title` search**: If the initial *ASIN* search returns *No Results*, the title of the book will be searched for automatically, the same behaviour as clicking the `Title` button.
 
 ## Item Pages
 
