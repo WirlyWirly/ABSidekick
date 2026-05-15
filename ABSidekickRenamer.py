@@ -153,6 +153,7 @@ for metadata_file in all_metadata_files:
 
     except Exception as error:
         print(f"Error: {error}")
+        summary = f"{summary}\nError | {metadata_file}"
 
     print('\n---------------------------\n')
 
