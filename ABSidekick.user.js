@@ -4,7 +4,7 @@
 
 // @name        ABSidekick
 // @author      WirlyWirly
-// @version     0.85
+// @version     0.86
 // @homepage    https://github.com/WirlyWirly/ABSidekick
 // @description A sidekick for the AudioBookShelf web interface
 //              Written on 🐺 LibreWolf via 🐵 Violentmonkey
@@ -815,7 +815,10 @@ function autoMatchStart(matchResults, mutationObserver = false) {
 
             let confidenceScore = confidenceElement.innerText.match(/(\d+)%/)[1]
 
-            if ( confidenceScore >= SETTINGS.autoMatchConfidence ) {
+            // Check if the match result has a duration of 'exact match'
+            let durationText = result.querySelector('div.resultDetails').innerText.match(/Duration: .+?\((.+)\)/i)[1]
+
+            if ( confidenceScore >= SETTINGS.autoMatchConfidence || durationText == 'exact match' ) {
                 // This match result has met or exceeded the confidence threshold, so prepare to save it
                 result.parentElement.classList.add('autoMatchSelection')
 
