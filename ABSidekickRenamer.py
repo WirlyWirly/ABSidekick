@@ -1,9 +1,9 @@
 # Move (or copy) folders based on the contents of their 'metadata.json'
 
-# python ./ABSidekickRenamer.py -f '%author%/%title%' -o './_ABSidekick_' /path/to/matched/folder
+# python ./ABSidekickRenamer.py -o './_ABSidekick_' -ff '%author%/%title%' -fa '%title%' /path/to/audiobookshelf/library/folders
 
-# For each input folder, search the tree for each 'metadata.json' file (Audiobookshelf)
-# For each found 'metadata.json' file, move (or copy) the folder based on the metadata
+# For each input folder, search the tree for every 'metadata.json' file (Audiobookshelf)
+# For each found 'metadata.json' file, move (or copy) the folder based on the contents of that file
 
 __version__ = 0.20
 import argparse
@@ -78,7 +78,7 @@ def rename_tracks(tracks_folder, track_template, meta_vars):
             # Rename the audio_file to the now resolved track_template
             audio_file.rename( item_format.parent / name_padded )
 
-    print('Files Renamed!')
+    print('Audio Files Renamed!')
 
 
 def template_substitution(string_template, meta_vars):
@@ -95,14 +95,29 @@ def template_substitution(string_template, meta_vars):
 
     return string_template
 
+print(fr'''
+===============================================================
+               ____   _____ _     _      _    _      _
+         /\   |  _ \ / ____(_)   | |    | |  (_)    | |
+        /  \  | |_) | (___  _  __| | ___| | ___  ___| | __
+       / /\ \ |  _ < \___ \| |/ _` |/ _ \ |/ / |/ __| |/ /
+      / ____ \| |_) |____) | | (_| |  __/   <| | (__|   <
+     /_/    \_\____/|_____/|_|\__,_|\___|_|\_\_|\___|_|\_\
+
+            A sidekick for Audiobookshelf (v{__version__})
+
+===============================================================
+''')
+
 
 # The arguments parser
-parser = argparse.ArgumentParser(prog='python ABSidekick.py', formatter_class=argparse.RawTextHelpFormatter, description="Organize Audiobookshelf items based on the contents of their 'metadata.json' file")
+parser = argparse.ArgumentParser(prog='python ABSidekick.py', formatter_class=argparse.RawTextHelpFormatter, description="Organize Audiobookshelf library items based on the contents of their 'metadata.json' file")
+
 parser.add_argument('-c', '--copy', action="store_true", help='Copy the item folder instead of renaming (moving) it')
 parser.add_argument('-d', '--dry', action="store_true", help='Perform a dry-run, not making any actual changes')
-parser.add_argument('-fa', '--formataudio', metavar="'String Format'", help="Specify a template that will be used when naming the audio files (same placeholders as --formatfolder)")
-parser.add_argument('-ff', '--formatfolder', metavar="'String Format'", help='Specify a template that will be used when naming the output folders\n\nPlaceholders\n\n%%asin%% %%author%% %%isbn%% %%language%% %%narrator%% %%publisher%% %%series%% %%series#%% %%title%% %%year%%\n\n')
-parser.add_argument('-o', '--output', dest='output', metavar='PATH', help='The output path of the process')
+parser.add_argument('-fa', '--formataudio', metavar="'template'", help="Specify a template that will be used when naming the audio files, same as --formatfolder")
+parser.add_argument('-ff', '--formatfolder', metavar="'template'", help='Specify a template that will be used when naming the output folders. Empty placeholders will be blank\n\n- Template Placeholders -\n\n%%asin%%\n%%author%%\n%%isbn%%\n%%language%%\n%%narrator%%\n%%publisher%%\n%%series%%\n%%series#%%\n%%title%%\n%%year%%\n\n')
+parser.add_argument('-o', '--output', dest='output', metavar='PATH', help='The output path of the folders')
 parser.add_argument('-t', '--tag', metavar='TagName', help='Process only the items that include this tag')
 parser.add_argument('-v', '--version', action='version', version=f"Version {__version__}")
 parser.add_argument('input_folders', metavar='Input Folder(s)', nargs='+', help="Folder(s) from where a recursive search for 'metadata.json' will be performed")
@@ -138,35 +153,42 @@ for folder in search_folders:
         if str(output_folder) not in str(json_file):
             all_metadata_files.append(json_file)
 
-input_folders = [str(folder) for folder in search_folders]
-response = input(f'''
-Metadata Files Found: {len(all_metadata_files)}
-Input Folder(s): {print(*input_folders, sep=" | ")}
-Output Folder: {output_folder}
+print(f'''Input Folder(s): {' | '.join([f'"{folder}"' for folder in search_folders])}''')
+print(f'Output Folder: "{output_folder}"\n')
 
-Continue? [y\\n]: ''')
+print('File Action: Copy') if args.copy else print('File Action: Rename [move]')
+print(f'Metadata Files: {len(all_metadata_files)}')
+print(f'Folder Template: "{args.formatfolder}"') if args.formatfolder else None
+print(f'Audio Template: "{args.formataudio}"') if args.formataudio else None
+
+
+response = input('\nContinue? [y\\n]: ')
 
 if response.lower() in ['n', 'no']:
     sys.exit()
+
 
 # When formatting output templates, any character NOT in this regex will be removed
 clean_regex = r"[^\w\.\-\_\!\(\)\[\]\{\} ]"
 
 # For each 'metadata.json', determine the new foldername
 summary = ''
+skipped_count = 0
+error_count = 0
 for metadata_file in all_metadata_files:
 
     # Read the contents of 'metadata.json'
     with metadata_file.open('r', encoding='utf-8') as file:
         metadata = json.load(file)
 
-    print(metadata.get('title'))
+    print('\n===============================================================\n')
+    print(f"{metadata.get('title')}\n")
 
     # If the metadata has no 'authors' value, then it will be skipped
     if (not metadata.get('authors')):
         print(f"Skip | No Author | {metadata_file}")
         summary = f"{summary}\nSkip | No Author | {metadata_file}"
-        print('\n---------------------------\n')
+        skipped_count += 1
         continue
 
     # If a specific tag was provided, then check to make sure this metadata contains that tag
@@ -175,7 +197,7 @@ for metadata_file in all_metadata_files:
         if ( args.tag not in item_tags ):
             print(f"Skip | Not Tagged | {metadata_file.parent}")
             summary = f"{summary}\nSkip | Not Tagged | {metadata_file.parent}"
-            print('\n---------------------------\n')
+            skipped_count += 1
             continue
 
 
@@ -236,7 +258,7 @@ for metadata_file in all_metadata_files:
     current_folder = metadata_file.parent
 
     print(f"Old: {current_folder}")
-    print(f"New: {new_foldername}")
+    print(f"New: {new_foldername}\n")
 
     if args.dry == True:
         # This IS a dry run
@@ -272,10 +294,30 @@ for metadata_file in all_metadata_files:
         except Exception as error:
             print(f"Error: {error}")
             summary = f"{summary}\nError | {metadata_file}"
+            error_count += 1
 
-    print('\n---------------------------\n')
+    # The separator between processed metadata files
 
-response = input("The process has completed, press Enter to exit or 's' to view a summary of skipped items: ")
 
-if response.lower() == 's':
-    print(summary)
+print(fr'''
+===============================================================
+             ______ _       _     _              _
+            |  ____(_)     (_)   | |            | |
+            | |__   _ _ __  _ ___| |__   ___  __| |
+            |  __| | | '_ \| / __| '_ \ / _ \/ _` |
+            | |    | | | | | \__ \ | | |  __/ (_| |
+            |_|    |_|_| |_|_|___/_| |_|\___|\__,_|
+
+===============================================================
+
+There were {skipped_count} skipped item(s) and {error_count} recorded error(s)
+''')
+
+if skipped_count > 0 or error_count > 0:
+    response = input(f"Press Enter to exit or 's' to view a summary of any skipped\errored items: ")
+
+    if response.lower() == 's':
+        print(summary)
+
+else:
+    response = input(f"Press Enter to exit...")
