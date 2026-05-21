@@ -51,17 +51,17 @@ For the full usage of `ABSidekickRenamer.py`, pass the `--help` flag, but here a
 
 > **Basic**
 > 
-> The `-d` flag performs a `dry-run`, which will allow you to view the results without actually making any changes.
+> The `-d` flag performs a `dry-run`, which will allow you to view the results without actually making any changes. Folders will be outputted into a `__ABSidekick__` directory
 >```bash
->$ python './ABSidekickRenamer.py' -d --output '/path/to/output/folder' '/path/to/audiobookshelf/library/folder'
+>$ python './ABSidekickRenamer.py' -d '/path/to/audiobookshelf/library/folder'
 >```
 
 
 > **Recommended**
 > 
-> This will rename **only** the books that have the tag `tagName` and the output folders will have a customized format.
+> This will rename **only** the items that have the tag `tagName` and the output folders\files will have a customized format.
 >```bash
->$ python './ABSidekickRenamer.py' --tag 'tagName' --format '%author%/%title% [ASIN-%asin%]/' --output '/path/to/output/folder' '/path/to/audiobookshelf/library/folder'
+>$ python './ABSidekickRenamer.py' --tag 'tagName' --output '/path/to/output/folder' --formatfolder '%author%/%title% [ASIN-%asin%]/' --formataudio '%title%' '/path/to/audiobookshelf/library/folder'
 >```
 
 ## Install
