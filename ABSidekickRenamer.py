@@ -15,61 +15,47 @@ import sys
 from pathlib import Path
 
 def rename_tracks(tracks_folder, track_template, meta_vars):
-    # - For the provided tracks_folder, find all audio files in the tree and then rename them according to the track_template
+    # For the provided tracks_folder, find all audio files in the tree and then rename them according to the track_template
 
-    audio_extensions = ['mp3', 'm4b', 'm4a', 'ogg', 'opus']
+    # Glob the tracks_folder for all files in the tree
     audio_files = []
+    all_files = sorted(tracks_folder.rglob('*'))
+    for file in all_files:
+        # Check that the globbed file is an audio type
+        if re.search('\.(mp3|m4b|m4a|ogg|opus)$', str(file)):
+            audio_files.append(file)
 
-    # Glob the tracks_folder for all audio type files
-    for extension in audio_extensions:
-        files = sorted(tracks_folder.rglob(f"./*.{extension}"))
-        for item in files:
-            audio_files.append(item)
-
-    if len(audio_files) < 1:
+    if len(audio_files) == 0:
         # This folder contains no audio type files
         return
 
-    # - Sort files before renaming
+    # Sort files before renaming
     audio_files.sort()
 
-    # - Rename each file according to track_template
+    # The track counter that will be incremented for each audio file
+    track = 1
+    padding = 2 if len(audio_files) < 100 else 3
 
-    if len(audio_files) == 1:
-        # - Single track folder: Rename without preceding track number
+    for audio_file in audio_files:
 
-        # The single audio type file in the provided tracks_folder
-        audio_file = audio_files[0]
-
-        # Replace the %variables% with actual values
+        # Replace the %variables% of the template with actual values
         item_format = template_substitution(track_template, meta_vars)
 
-        # Create the absolute Path object
+        # Create the absolute Path object for the new track path
         item_format = tracks_folder / f"{item_format}{audio_file.suffix}"
         item_format.resolve()
 
-        # Create the tree leading to the new item_format
+        # Create the tree leading to the new track path
         item_format.parent.mkdir(parents=True, exist_ok=True)
 
-        # Rename the audio_file to the now resolved track_template
-        audio_file.rename(item_format)
+        if len(audio_files) == 1:
+            # Single track folder: Rename without preceding track number
 
-    else:
-        # - Multi-track folder: Rename with preceding track number
+            # Rename the audio_file to the now resolved track_template
+            audio_file.rename(item_format)
 
-        track = 1
-        padding = 2 if len(audio_files) < 100 else 3
-
-        for audio_file in audio_files:
-
-            # Replace the %variables% with actual values
-            item_format = template_substitution(track_template, meta_vars)
-
-            # Create the absolute Path object for the new track path
-            item_format = tracks_folder / f"{item_format}{audio_file.suffix}"
-
-            # Create the tree leading to the new track path
-            item_format.parent.mkdir(parents=True, exist_ok=True)
+        else:
+            # Multi-track folder: Rename with preceding track number
 
             # Add the track number and appropriate padding before the track name
             name_padded = f"{str(track).zfill(padding)} - {item_format.name}"
