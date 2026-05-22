@@ -5,7 +5,8 @@
 # For each input folder, search the tree for every 'metadata.json' file (Audiobookshelf)
 # For each found 'metadata.json' file, move (or copy) the folder based on the contents of that file
 
-__version__ = 0.20
+# ==================================== IMPORTS ====================================
+
 import argparse
 import json
 import re
@@ -13,6 +14,22 @@ import shutil
 import sys
 
 from pathlib import Path
+
+# ==================================== FUNCTIONS ====================================
+
+def template_substitution(string_template, meta_vars):
+    # - Substitute each %variable% in the string_template with it's appropriate value from the meta_vars dictionary
+
+    for key in meta_vars:
+
+        if meta_vars[key] != None and meta_vars[key] != False:
+            cleaned = re.sub(clean_regex, '', meta_vars[key])
+            string_template = re.sub(f"%{key}%", cleaned, string_template, flags=re.IGNORECASE)
+
+        else:
+            string_template = re.sub(f"%{key}%", '', string_template, flags=re.IGNORECASE)
+
+    return string_template
 
 def rename_tracks(tracks_folder, track_template, meta_vars):
     # For the provided tracks_folder, find all audio files in the tree and then rename them according to the track_template
@@ -64,22 +81,11 @@ def rename_tracks(tracks_folder, track_template, meta_vars):
             # Rename the audio_file to the now resolved track_template
             audio_file.rename( item_format.parent / name_padded )
 
-    print('Audio Files Renamed!')
+    print('☆ Audio Files Renamed ☆')
 
+# ==================================== MAIN ====================================
 
-def template_substitution(string_template, meta_vars):
-    # - Substitute each %variable% in the string_template with it's appropriate value from the meta_vars dictionary
-
-    for key in meta_vars:
-
-        if meta_vars[key] != None and meta_vars[key] != False:
-            cleaned = re.sub(clean_regex, '', meta_vars[key])
-            string_template = re.sub(f"%{key}%", cleaned, string_template, flags=re.IGNORECASE)
-
-        else:
-            string_template = re.sub(f"%{key}%", '', string_template, flags=re.IGNORECASE)
-
-    return string_template
+__version__ = 0.21
 
 print(fr'''
 ===============================================================
@@ -90,7 +96,7 @@ print(fr'''
       / ____ \| |_) |____) | | (_| |  __/   <| | (__|   <
      /_/    \_\____/|_____/|_|\__,_|\___|_|\_\_|\___|_|\_\
 
-            A sidekick for Audiobookshelf (v{__version__})
+          ☆ A sidekick for Audiobookshelf (v{__version__}) ☆
 
 ===============================================================
 ''')
@@ -99,12 +105,13 @@ print(fr'''
 # The arguments parser
 parser = argparse.ArgumentParser(prog='python ABSidekickRenamer.py', formatter_class=argparse.RawTextHelpFormatter, description="Organize Audiobookshelf library items based on the contents of their 'metadata.json' file")
 
-parser.add_argument('-c', '--copy', action="store_true", help='Copy the item folder instead of renaming (moving) it')
+parser.add_argument('-c', '--copy', action='store_true', help='Copy the item folder instead of renaming (moving) it')
 parser.add_argument('-d', '--dry', action="store_true", help='Perform a dry-run, not making any actual changes')
 parser.add_argument('-fa', '--formataudio', metavar="'template'", help="Specify a template that will be used when naming the audio files, same as --formatfolder")
 parser.add_argument('-ff', '--formatfolder', metavar="'template'", help='Specify a template that will be used when naming the output folders. Empty placeholder values will be blank\n\n- Placeholders -\n%%asin%%\n%%author%%\n%%isbn%%\n%%language%%\n%%narrator%%\n%%publisher%%\n%%series%%\n%%series#%%\n%%title%%\n%%year%%\n\n')
-parser.add_argument('-o', '--output', dest='output', metavar='PATH', help='The output path of the folders')
+parser.add_argument('-o', '--output', dest='output', metavar='PATH', help='The path to where item folders will be outputted')
 parser.add_argument('-t', '--tag', metavar='TagName', help='Process only the items that include this tag')
+parser.add_argument('-y', '--yes', action='store_true', help='Skip all prompts and proceed through script')
 parser.add_argument('input_folders', metavar='Input Folder(s)', nargs='+', help="Folder(s) from where a recursive search for 'metadata.json' will be performed")
 
 args = parser.parse_args()
@@ -115,8 +122,12 @@ if args.output:
 
     # If the output does not exist or is not valid, offer to create it
     if not test_output.is_dir():
-        response = input(f"\nThe output path does not exist\n\n{test_output}\n\nWould you like to create it and continue? [y\\n]: ")
-        if response.lower() in ['y', 'yes']:
+
+        if args.yes != True:
+            response = input(f"\nThe output path does not exist\n\n{test_output}\n\nWould you like to create it and continue? [y\\n]: ")
+            print('\n===============================================================\n')
+
+        if args.yes or response.lower() in ['y', 'yes']:
             output_folder = test_output
         else:
             sys.exit()
@@ -132,7 +143,6 @@ all_metadata_files = []
 search_folders = [Path(argument).resolve() for argument in args.input_folders]
 
 for folder in search_folders:
-
     # Search each input folder for 'metadata.json'
     for json_file in folder.glob('**/metadata.json'):
         if str(output_folder) not in str(json_file):
@@ -143,14 +153,15 @@ print(f'Output Folder: "{output_folder}"\n')
 
 print('File Action: Copy') if args.copy else print('File Action: Rename [move]')
 print(f'Metadata Files: {len(all_metadata_files)}')
-print(f'Folder Template: "{args.formatfolder}"') if args.formatfolder else None
+print(f'Folder Template: "{args.formatfolder}"') if args.formatfolder else print(f'Folder Template: "%author%/%title%"')
 print(f'Audio Template: "{args.formataudio}"') if args.formataudio else None
 
 
-response = input('\nContinue? [y\\n]: ')
+if args.yes != True:
+    response = input('\nContinue? [y\\n]: ')
+    if response.lower() in ['n', 'no']:
+        sys.exit()
 
-if response.lower() in ['n', 'no']:
-    sys.exit()
 
 
 # When formatting output templates, any character NOT in this regex will be removed
@@ -167,7 +178,7 @@ for metadata_file in all_metadata_files:
         metadata = json.load(file)
 
     print('\n===============================================================\n')
-    print(f"{metadata.get('title')}\n")
+    print(f"🟆 {metadata.get('title')} 🟆\n")
 
     # If the metadata has no 'authors' value, then it will be skipped
     if (not metadata.get('authors')):
@@ -242,8 +253,8 @@ for metadata_file in all_metadata_files:
     # The current path of 'metadata.json'
     current_folder = metadata_file.parent
 
-    print(f"Old: {current_folder}")
-    print(f"New: {new_foldername}\n")
+    print(f'Old: "{current_folder}"')
+    print(f'New: "{new_foldername}"\n')
 
     if args.dry == True:
         # This IS a dry run
@@ -260,7 +271,7 @@ for metadata_file in all_metadata_files:
             # Copy the folder
             if args.copy == True:
                 shutil.copytree(current_folder, new_foldername, dirs_exist_ok=True, copy_function=shutil.copy2)
-                print('Folder Copied!')
+                print('☆ Folder Copied ☆')
 
             # Rename (Move) the folder
             else:
@@ -270,7 +281,7 @@ for metadata_file in all_metadata_files:
                 if any(current_folder.parent.iterdir()) == False:
                     shutil.rmtree(current_folder.parent)
 
-                print('Folder Moved!')
+                print('☆ Folder Renamed ☆')
 
             if args.formataudio != None:
                 # A string format for the audio files was provided, so rename the newly moved\copied files
@@ -280,8 +291,6 @@ for metadata_file in all_metadata_files:
             print(f"Error: {error}")
             summary = f"{summary}\nError | {metadata_file}"
             error_count += 1
-
-    # The separator between processed metadata files
 
 
 print(fr'''
@@ -298,11 +307,11 @@ print(fr'''
 There were {skipped_count} skipped item(s) and {error_count} recorded error(s)
 ''')
 
-if skipped_count > 0 or error_count > 0:
+if args.yes != True and skipped_count > 0 or error_count > 0:
     response = input(f"Press Enter to exit or 's' to view a summary of any skipped\errored items: ")
 
     if response.lower() == 's':
         print(summary)
 
-else:
+elif args.yes != True:
     response = input(f"Press Enter to exit...")
