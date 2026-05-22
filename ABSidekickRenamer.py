@@ -74,10 +74,10 @@ def template_substitution(string_template, meta_vars):
 
         if meta_vars[key] != None and meta_vars[key] != False:
             cleaned = re.sub(clean_regex, '', meta_vars[key])
-            string_template = re.sub(f"%{key}%", cleaned, string_template)
+            string_template = re.sub(f"%{key}%", cleaned, string_template, flags=re.IGNORECASE)
 
         else:
-            string_template = re.sub(f"%{key}%", '', string_template)
+            string_template = re.sub(f"%{key}%", '', string_template, flags=re.IGNORECASE)
 
     return string_template
 
@@ -97,15 +97,14 @@ print(fr'''
 
 
 # The arguments parser
-parser = argparse.ArgumentParser(prog='python ABSidekick.py', formatter_class=argparse.RawTextHelpFormatter, description="Organize Audiobookshelf library items based on the contents of their 'metadata.json' file")
+parser = argparse.ArgumentParser(prog='python ABSidekickRenamer.py', formatter_class=argparse.RawTextHelpFormatter, description="Organize Audiobookshelf library items based on the contents of their 'metadata.json' file")
 
 parser.add_argument('-c', '--copy', action="store_true", help='Copy the item folder instead of renaming (moving) it')
 parser.add_argument('-d', '--dry', action="store_true", help='Perform a dry-run, not making any actual changes')
 parser.add_argument('-fa', '--formataudio', metavar="'template'", help="Specify a template that will be used when naming the audio files, same as --formatfolder")
-parser.add_argument('-ff', '--formatfolder', metavar="'template'", help='Specify a template that will be used when naming the output folders. Empty placeholders will be blank\n\n- Template Placeholders -\n\n%%asin%%\n%%author%%\n%%isbn%%\n%%language%%\n%%narrator%%\n%%publisher%%\n%%series%%\n%%series#%%\n%%title%%\n%%year%%\n\n')
+parser.add_argument('-ff', '--formatfolder', metavar="'template'", help='Specify a template that will be used when naming the output folders. Empty placeholder values will be blank\n\n- Placeholders -\n%%asin%%\n%%author%%\n%%isbn%%\n%%language%%\n%%narrator%%\n%%publisher%%\n%%series%%\n%%series#%%\n%%title%%\n%%year%%\n\n')
 parser.add_argument('-o', '--output', dest='output', metavar='PATH', help='The output path of the folders')
 parser.add_argument('-t', '--tag', metavar='TagName', help='Process only the items that include this tag')
-parser.add_argument('-v', '--version', action='version', version=f"Version {__version__}")
 parser.add_argument('input_folders', metavar='Input Folder(s)', nargs='+', help="Folder(s) from where a recursive search for 'metadata.json' will be performed")
 
 args = parser.parse_args()
