@@ -152,8 +152,8 @@ for folder in search_folders:
 print(f'''Input Folder(s): {' | '.join([f'"{folder}"' for folder in search_folders])}''')
 print(f'Output Folder: "{output_folder}"\n')
 
-print('File Action: Copy') if args.copy else print('File Action: Rename [move]')
 print(f'Metadata Files: {len(all_metadata_files)}')
+print('Folder Action: Copy') if args.copy else print('Folder Action: Rename [move]')
 print(f'Folder Template: "{args.formatfolder}"') if args.formatfolder else print(f'Folder Template: "%author%/%title%"')
 print(f'Audio Template: "{args.formataudio}"') if args.formataudio else None
 
