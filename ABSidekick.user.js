@@ -989,14 +989,18 @@ async function saveResult(matchButton, additionalTags = false) {
 
 
 async function audibleLookup(asinButton, event) {
+    // The 'Audible' lookup button of the MatchTab was clicked
 
+    // The floating Edit panel
     let editPanel = document.getElementById('editPanel')
 
+    // Click the book item, which will load the form data
     asinButton
         .closest('div.resultContainer')
         .querySelector('div.resultProcessed')
         .click()
 
+    // Wait until the submit button is available, indicating the form is available, then get the ASIN
     await waitForElement(
         'button.bg-success[type="submit"]',
         editPanel.querySelector('#match-wrapper')
@@ -1006,6 +1010,7 @@ async function audibleLookup(asinButton, event) {
         .querySelector('#match-wrapper input[placeholder="ASIN"]')
         ?.value
 
+    // Click the back arrow to return to match results
     let backArrowElement = editPanel
         .querySelector('div.cursor-pointer:has(> span.material-symbols')
 
@@ -1021,7 +1026,7 @@ async function audibleLookup(asinButton, event) {
     handleAudibleOpen(asinURL, event)
 }
 
-// Flag `audibleInABS` for default Audible opening in new tab vs. frame in ABS window.
+// Flag `audibleInABS` for default Audible opening in new tab vs. iframe in ABS window.
 // Inetegrate into contol panel option?
 function handleAudibleOpen(asinURL, event = {}, audibleInABS = false) {
 
