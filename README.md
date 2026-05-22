@@ -41,7 +41,7 @@ A suite of customizations that add a little color and some new features to an it
 * **Hover Cover**: Hover your mouse over the cover image to quickly enlarge it for detailed viewing
 
 ## ABSidekickRenamer
-Audiobookshelf does **not** have the ability to directly rename\organize folders, so if you would like to organize your actual folders with the newly matched metadata, it must be done server-side using other means.
+Audiobookshelf does **not** have the ability to directly rename\organize item folders, so if you would like to organize your actual folders with the newly matched metadata, it must be done server-side using other means.
 
 Therefore, included in this repo is the file `ABSidekickRenamer.py`, which is a small python script that will allow you to quickly rename\organize your items based on the contents of their `metadata.json` file.
 
@@ -50,16 +50,16 @@ Therefore, included in this repo is the file `ABSidekickRenamer.py`, which is a 
 For the full usage of `ABSidekickRenamer.py`, pass the `--help` flag, but here are some examples...
 
 > **Basic**
-> 
-> The `-d` flag performs a `dry-run`, which will allow you to view the results without actually making any changes. Folders will be outputted into a `__ABSidekick__` directory
+>
+> The `-d` flag performs a `dry-run`, which will allow you to view the new folder names without actually making any changes. Folders will be outputted into a `__ABSidekick__` directory
 >```bash
 >$ python './ABSidekickRenamer.py' -d '/path/to/audiobookshelf/library/folder'
 >```
 
 
 > **Recommended**
-> 
-> This will rename **only** the items that have the tag `tagName` and the output folders\files will have a customized format.
+>
+> This will rename **only** the items that have the tag `tagName` and the outputted folders\files will have a custom path format.
 >```bash
 >$ python './ABSidekickRenamer.py' --tag 'tagName' --output '/path/to/output/folder' --formatfolder '%author%/%title% [ASIN-%asin%]/' --formataudio '%title%' '/path/to/audiobookshelf/library/folder'
 >```
@@ -73,18 +73,18 @@ ABSidekick is a **UserScript**, so will require that you have a **UserScript Man
 A **UserScript** is a file of **JavaScript** code that is executed by a *UserScript Manager*, which is a browser addon who's purpose is to run a *UserScript* when you visit a site it is programmed to operate on. You can can find and install a *UserScript Manager* addon from your browsers web store...
 
 > **Violentmonkey**:
-[Firefox](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/) | 
-[Chrome](https://chromewebstore.google.com/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) | 
+[Firefox](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/) |
+[Chrome](https://chromewebstore.google.com/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag) |
 [Edge](https://microsoftedge.microsoft.com/addons/detail/violentmonkey/eeagobfjdenkkddmbclomhiblgggliao)<br>
 > **Tampermonkey**:
-[Firefox](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/) | 
+[Firefox](https://addons.mozilla.org/en-US/firefox/addon/tampermonkey/) |
 [Chrome](https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) |
 [Edge](https://microsoftedge.microsoft.com/addons/detail/tampermonkey/iikmkjmpaadaobahmlepeloendndfphd) |
 [Safari](https://apps.apple.com/us/app/tampermonkey/id6738342400)
 
 If you are not sure which *UserScript Manager* to install, the one I would recommend above all others is [Violentmonkey](https://violentmonkey.github.io/), both for its fantastice development team and open-source nature. If Violentmonkey is not available to you, my next recommendation would be [Tampermonkey](https://www.tampermonkey.net/), which is more widely available but is not open-source.
 
-Once you have installed a *UserScript Manager* addon to your browser, simply click the **Install** link below and the manager will prompt you to install *ABSidekick*. After it has been installed, you will immediately start seeing the changes made by *ABSidekick* whenever you visit the Audiobookshelf web interface! 🥳 
+Once you have installed a *UserScript Manager* addon to your browser, simply click the **Install** link below and the manager will prompt you to install *ABSidekick*. After it has been installed, you will immediately start seeing the changes made by *ABSidekick* whenever you visit the Audiobookshelf web interface! 🥳
 
 ⚠️ UserScripts like **ABSidekick** will run **code** in your browser when you visit certain pages. It is important to be aware of this and therefore only install UserScripts from trusted sources.
 
@@ -102,4 +102,3 @@ Once you have installed a *UserScript Manager* addon to your browser, simply cli
 > **Source: [GitHub](https://github.com/WirlyWirly/ABSidekick)**<br>
 > **Install: [🌱 ABSidekick](https://raw.githubusercontent.com/WirlyWirly/ABSidekick/main/ABSidekick.user.js?raw=true)**<br>
 > Written on [🐺 LibreWolf](https://librewolf.net/) via [🐵 Violentmonkey](https://violentmonkey.github.io/)
-

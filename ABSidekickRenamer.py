@@ -31,6 +31,7 @@ def template_substitution(string_template, meta_vars):
 
     return string_template
 
+
 def rename_tracks(tracks_folder, track_template, meta_vars):
     # For the provided tracks_folder, find all audio files in the tree and then rename them according to the track_template
 
