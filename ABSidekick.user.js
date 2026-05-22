@@ -302,7 +302,7 @@ async function itemPageInjector(itemPage) {
     SETTINGS.itemButtonGlass ? goodreadsButton.classList.add('itemButtonGlass') : null
     goodreadsButton.title = 'Search Goodreads for this title'
     goodreadsButton.addEventListener('click', function(event) {
-        // Open the Audible page using the available ASIN
+        // Open the Goodreads page using the available title
 
         let goodreadsURL = SETTINGS.goodreadsTemplate.replace(/%title%/, encodeURI(templateVariables.title))
         window.open(goodreadsURL, '_blank')
@@ -325,7 +325,6 @@ async function itemPageInjector(itemPage) {
 
             let asinURL = SETTINGS.audibleTemplate.replace(/%asin%/, metadata.media.metadata.asin)
             window.open(asinURL, '_blank')
-
         })
 
         itemPage.querySelector('#buttonsRow > div:last-child').insertAdjacentElement('beforebegin', audibleButton)
@@ -570,11 +569,14 @@ async function matchTabInjector() {
 
                 // Audible Button
                 let asinButton = document.createElement('button')
+
                 asinButton.innerText = 'Audible'
                 asinButton.title = 'Open the Audible page of this match result\n\nℹ️ Only works if the match result has an ASIN'
                 asinButton.classList.add('asinSearch', 'resultButton')
-                asinButton.addEventListener('mouseup', function(event) {
-                    event.button == 0 ? audibleLookup(this) : null
+
+                // single clean entry point
+                asinButton.addEventListener('click', function (event) {
+                    audibleLookup(this, event)
                 })
 
                 // Create and populate the element that will contain the ABSidekick buttons
@@ -986,30 +988,98 @@ async function saveResult(matchButton, additionalTags = false) {
 }
 
 
-async function audibleLookup(asinButton) {
-    // The 'Audible' lookup button of the MatchTab was clicked
+async function audibleLookup(asinButton, event) {
 
-    // The floating Edit panel
     let editPanel = document.getElementById('editPanel')
 
-    // Click the book item, which will load the form data
-    asinButton.closest('div.resultContainer').querySelector('div.resultProcessed').click()
+    asinButton
+        .closest('div.resultContainer')
+        .querySelector('div.resultProcessed')
+        .click()
 
-    // Wait until the submit button is available, indicating the form is available, then get the ASIN
-    let submitButton = await waitForElement('button.bg-success[type="submit"]', editPanel.querySelector('#match-wrapper'))
+    await waitForElement(
+        'button.bg-success[type="submit"]',
+        editPanel.querySelector('#match-wrapper')
+    )
 
-    let asinURL
-    try {
-        let asinValue = editPanel.querySelector('#match-wrapper input[placeholder="ASIN"]').value
-        asinURL = SETTINGS.audibleTemplate.replace(/%asin%/, asinValue)
-    } catch(error) {}
+    let asinValue = editPanel
+        .querySelector('#match-wrapper input[placeholder="ASIN"]')
+        ?.value
 
-    // Click the back arrow to return to match results
-    let backArrowElement = editPanel.querySelector('div.cursor-pointer:has(> span.material-symbols')
-    backArrowElement.click()
+    let backArrowElement = editPanel
+        .querySelector('div.cursor-pointer:has(> span.material-symbols')
 
-    asinURL ? window.open(asinURL, '_blank') : asinButton.innerText = 'No ASIN'
+    backArrowElement?.click()
 
+    if (!asinValue) {
+        asinButton.innerText = 'No ASIN'
+        return
+    }
+
+    let asinURL = SETTINGS.audibleTemplate.replace(/%asin%/, asinValue)
+
+    handleAudibleOpen(asinURL, event)
+}
+
+// Flag `audibleInABS` for default Audible opening in new tab vs. frame in ABS window.
+// Inetegrate into contol panel option?
+function handleAudibleOpen(asinURL, event = {}, audibleInABS = false) {
+
+    let invert = event.ctrlKey || event.metaKey
+    let useFrame = invert ? !audibleInABS : audibleInABS
+
+    if (useFrame) {
+        openAudibleFrame(asinURL)
+    } else {
+        window.open(asinURL, '_blank')
+    }
+}
+
+
+function openAudibleFrame(url) {
+    let frame = document.getElementById('abs-audible-frame')
+
+    if (!frame) {
+        frame = document.createElement('iframe')
+        frame.id = 'abs-audible-frame'
+
+        frame.style.position = 'fixed'
+        frame.style.top = '0'
+        frame.style.left = '0'
+        frame.style.width = '100vw'
+        frame.style.height = '100vh'
+        frame.style.zIndex = '999999'
+        frame.style.border = 'none'
+        frame.style.background = 'white'
+
+        document.body.appendChild(frame)
+
+        // ADD EXIT BUTTON
+        const closeBtn = document.createElement('button')
+        closeBtn.style.display = 'flex'
+        closeBtn.style.alignItems = 'center'
+        closeBtn.style.gap = '8px'
+
+        closeBtn.innerHTML = `
+          <img src="https://www.audiobookshelf.org/Logo48.png"
+               style="width:24px;height:24px;">RETURN TO ABS
+        `
+        closeBtn.style.position = 'fixed'
+        closeBtn.style.top = '10px'
+        closeBtn.style.left = '50%'
+        closeBtn.style.transform = 'translateX(-50%)'
+        closeBtn.style.zIndex = '1000000'
+        closeBtn.style.padding = '6px 10px'
+
+        closeBtn.onclick = () => {
+            frame.remove()
+            closeBtn.remove()
+        }
+
+        document.body.appendChild(closeBtn)
+    }
+
+    frame.src = url
 }
 
 
